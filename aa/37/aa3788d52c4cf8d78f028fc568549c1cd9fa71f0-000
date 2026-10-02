@@ -1,0 +1,18 @@
+# ModelingJapan_01 : feedback and context log (append only)
+
+## Standing rules inherited from GTA6_Stilt_House (do not make Matthieu repeat them)
+- Modelling only, through the ZenRay Houdini bridge. One component at a time, from the reference image he gives.
+- Everything lives in ONE object `/obj/JapanScene`, subnets named `Component_<Name>_<id>` (id at the end, 01..NN).
+- Never delete : superseded work is renamed `_blockout` and unplugged.
+- HDA law : every dimension is a spare parm on `/obj/JapanScene`, no literal value inside the network ;
+  placement of a component is a separate transform node, so the model stays modelled at the origin.
+- Model each component ISOLATED at the origin against its breakdown image, judged on a 4-view sheet
+  (front, profile, bottom, iso) plus an overlay with the reference ; the reference camera comes after.
+- Components are straight and axis aligned : a 3/4 look is the CAMERA, never a rotated model.
+- Before modelling, write `breakdowns/<id>_<Name>_breakdown.md` : sub-components, parts, measures.
+- Symmetry and alignment are MEASURED on the built geometry, never eyeballed.
+- Save : `snapshot save /obj/JapanScene[/Component_*] <label>` plus the hip, after each step.
+- Blockout first, details later, when he says so.
+
+## Log
+- 2026-09-17 : project created (same layout as GTA6_Stilt_House). Waiting for the reference images.

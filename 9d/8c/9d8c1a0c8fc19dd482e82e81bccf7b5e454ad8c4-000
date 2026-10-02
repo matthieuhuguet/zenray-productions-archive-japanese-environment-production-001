@@ -1,0 +1,72 @@
+# ModelingJapan_01 : feedback, prompts and rules (append only)
+
+## Prompt log (every request from Matthieu, verbatim intent)
+- 2026-09-17 #1 : "crée un nouveau projet même setup que gta6 dans ZenRayHoudini, dossier propre ModelingJapan_01,
+  lance le mcp, ouvre houdini, commence le blockout composant par composant, crée juste le setup". -> project skeleton done.
+- 2026-09-17 #2 : "commence Component11 bien placé dans la scène, refs componentsbycomponents1 / reforiginalcolor /
+  refplacement, continue tant que ce n'est pas parfait, PUIS le toit Component09 (plusieurs sous-composants, parfait
+  et placé), PUIS Component10 (l'entrée). Fais un .md feedback pour rien oublier. Puis crée le skill feedback
+  inspiré de prompt-stacking / claude.md qui note chacun de mes prompts."
+
+## Order of work (do not reorder)
+1. Component_11 : shrine platform with its stairs, modelled then placed in the scene.
+2. Component_09 : the roof, several sub-components, perfect, then placed. ONLY once 11 is perfect.
+3. Component_10 : the entrance. ONLY once 09 is perfect.
+
+## Standing rules (inherited from GTA6_Stilt_House, never ask again)
+- One object `/obj/JapanScene`, subnets `Component_<Name>_<id>`, id at the end.
+- Model ISOLATED at the origin, straight and axis aligned : a 3/4 look is the CAMERA, never a rotated model.
+- Write `breakdowns/<id>_<Name>_breakdown.md` (sub-components, parts, measures) BEFORE modelling.
+- Judge on a 4-view sheet (front, profile, bottom, iso) plus an overlay with the reference image.
+- Every dimension is a spare parm on `/obj/JapanScene` (HDA law) ; placement is a separate transform node.
+- Symmetry and alignment are MEASURED on the built geometry, never eyeballed.
+- Never delete : superseded work is renamed `_blockout` and unplugged.
+- Save after each step : `snapshot save` plus the hip.
+
+## Log
+- 2026-09-17 12:34 : project created, /obj/JapanScene + cam_japan_ref, snapshot v001 project_setup.
+- 2026-09-17 12:50 : Component_ShrinePlatform_11 blockout done in 5 sub-components (deck slab, paired under posts
+  with beams and flared feet, 5 step flight, sloped cheeks with newels, corner posts with capitals).
+  Measured against refs/Component11.png by 50% blend : deck 7.0 x 4.6 m, deck height 1.6, fascia 0.45,
+  stairs 2.1 wide with 0.38 treads. Placed with yaw 180 so the stairs face the approach path (refplacement).
+  Left for later : end brackets projecting at the deck ends, plank joint lines of the ref.
+- 2026-09-17 14:22 : Skill feedback-stack cree : chaque prompt de Matthieu entre dans FEEDBACK.md avant le travail.
+- 2026-09-17 14:43 : 11 corrige : profondeur 4.6 -> 2.6 (c'est une veranda, pas une terrasse), hauteur de plancher 1.6, consoles d'extremite en deux petits gradins, poteaux par paires plus degages, joues plus epaisses.
+- 2026-09-17 15:50 : Winding mesure contre le box SOP de Houdini : un solide correct a un volume NEGATIF avec la formule du triple produit. box8 etait juste, cylx et l extrusion etaient inverses, ce qui transformait chaque union booleenne en intersection et detruisait la geometrie en silence.
+- 2026-09-17 16:51 : Tuile v005 : profil ajuste sur la vue de face (bac 15.4 mm, creux a 0.478, rouleau R 26 mm, epaisseur 28 mm, levre 33 mm). Toit v004 : 678 tuiles HDA packed, plan 9 m / porche 5.9 m mesures vue de dessus, courbe puissance 1.45 vue de cote, faitage y 8.51 z -5.49 ; piege : normale du repere de pente inversee. Facade 10 v001 : 4 sous-composants, posee y 1.6 z -1.9.
+- 2026-09-17 16:56 : Torii 12 v001 : 3 sous-composants mesures sur torii-composition (echelle 1.06 apres blend), place z 21.7. Proxies 13 : komainu x+-4.3 z5.1, lanternes x+-3.0 z16.5, 2 cedres heros + 90 cylindres seedes, allee 2.2 m, banc. Camera cam_refplacement resolue (horizon 704, hauteur 1.92, focale 965 px, pitch 9.5) : blend 50% aligne torii, sanctuaire, komainu, allee. Ref couleur en gris : refs/reforiginal_grey_levelmatched.png, moyenne 0.477 et ecart-type 0.171 identiques au rendu Houdini.
+- 2026-09-17 20:39 : Lanterne 14 v001 : 4 sous-composants, 5.75 m pour 1.70 m de socle, mesuree sur la lanterne gauche de refplacement (ratio 3.44). Le proxy 13b est conserve sous Sub_13b_Lanterns_blockout, construit mais debranche du merge.
+- 2026-09-17 23:19 : Systeme de versions refondu : dossier par projet <hip>/snapshots/<NomDuHip>/, verbes save list where use branch, sorties rebranchees, format graph vs parms-only affiche. LouisianaBayou deplace dans son dossier avec liens symboliques ; ses 42 versions sont au vieux format parms-only donc non reinstanciables.
+- 2026-09-17 23:46 : Short 01 : cam_short_01, 3 plans de 5 s en expressions python (travelling ref, 3/4 arriere du toit, turn over), 360 images a 24 fps, clairiere 15.5 m et sol 120 m ajoutes pour degager les plans. Horodatage ISO consigne dans le skill.
+- 2026-09-18 00:10 : Mesure qui explique les prises ratees : une commande envoyee par le pont BLOQUE le thread principal de Houdini, donc la lecture n avance pas pendant l appel ; et ce viewport joue a 14 images par seconde et non 24. Correction : shot_len accorde a 64 images pour 5 s reelles par plan, et la duree des plans mesuree dans la prise (A 4.35 a 9.60, B statique 9.75 a 13.25, C 13.50 a 17.60).
+- 2026-09-18 00:32 : Short 01 fini en v003 : 20 s, titre MODELING JAPAN / FROM PICTURES, sous-titres anglais en degrade #99f8d3 vers #76a2d0 avec kaomoji, image de cloture 2 s, musique coupee a 1 min 20 s normalisee, dossier range dans Downloads/tmp-ModelingJapan1/short-01-modeling-japan avec 01_master 02_sources 03_work 04_plan.
+
+
+## Standing rules
+- 2026-09-17 14:38 : shot_object.py cree un carton /obj/zr_backdrop qui pollue la scene : le detruire apres chaque capture (fait dans zr_views_jp.sh).
+- 2026-09-17 14:58 : Toit : modeliser d'abord UNE tuile (ref japaneseshringle01.png) puis l'instancier dans un HDA de toit. NE JAMAIS placer les tuiles a la main. Placement du toit ensuite via component-roof.png.
+- 2026-09-17 15:50 : La tuile doit etre UN seul composant soude, non flottant, construit comme un HDA a part entiere.
+- 2026-09-17 16:51 : Tout profil se MESURE sur la ref (silhouette pixel par pixel, ajustement), jamais a l oeil : l angle de la tuile etait faux a l estime.
+- 2026-09-17 16:51 : Details decoratifs (kanji, nuages sculptes, motifs) exclus du blockout sauf demande.
+- 2026-09-18 00:10 : Le short se capture avec OBS, JAMAIS avec un flipbook.
+- 2026-09-18 00:10 : Les cameras et les lumieres se masquent dans le viewport avant toute prise : viewdisplay -G "JapanScene", puis remise a "*" apres.
+
+
+## Prompt log
+- 2026-09-17 15:50 : Valider d'abord la tuile seule (ref japaneseshringle01.png), puis la forme du toit ; isoler le reste et ranger le graphe.
+- 2026-09-17 16:51 : Regarde la front view : l'angle de la tuile n'est pas exactement le meme (refs component-roof.png, japaneseshringle01.png).
+- 2026-09-17 16:51 : Rebuild le toit via la tuile, prends ton temps (roof_component.png), puis place-le parfaitement par rapport a ce qui existe deja, aucune excuse via la ref.
+- 2026-09-17 16:51 : 4 vues du batiment du milieu : component-interior-structure.png + interior-house-component.png. Pas besoin des details (kanji, motifs).
+- 2026-09-17 16:51 : Note les prompts non notes. Puis modelise parfaitement et place le torii (torii-composition.png). Place des cubes/rectangles pour komainu et lanternes, des cylindres pour les arbres (refplacement.png + reforiginalcolor.png passee en gris, luminosite matchee a Houdini). /tasks-sequence
+- 2026-09-17 20:39 : Snapshot et save de tous les composants, puis composant suivant identifie depuis componentsbycomponents1.png et la ref couleur.
+
+
+## Order of work
+- 2026-09-17 20:39 : Reste a faire d apres la planche des 16 : 6+7 lanterne (FAIT en 14), 8 komainu (proxy), 12 segments d allee (proxy), 13 troncs de cedre (cylindres), 14 feuillage (absent), 15 patchs de sol (absent), 16 rochers (absent), 10 travees laterales du sanctuaire (une seule travee faite).
+
+## 2 October 2026, 13:14:51 +0200 : Historical source
+
+<!-- feedback-event:e9746bb57a66d7a03bb3d0b13433e1071b4bbc559c2afdaf6cb0220f7c795019 (2 October 2026, 13:14:51 +0200) -->
+- Project: japanese-environment; kind: provenance. (2 October 2026, 13:14:51 +0200)
+
+> Future feedback is recorded in [FEEDBACK.md](/Users/zenray/.claude/Memory1/Projects/japanese-environment/FEEDBACK.md). (2 October 2026, 13:14:51 +0200)

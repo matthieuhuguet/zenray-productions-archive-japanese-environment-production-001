@@ -1,0 +1,12 @@
+# Component_Entrance_10 breakdown
+Refs : refs/component-interior-structure.png (4 views), refs/interior-house-component.png (in context).
+Scale : front view beam length 640 px = 5.4 m (0.0084 m/px). Carvings, kanji and motifs skipped on request.
+
+| Sub | Parts | Measures (m) |
+|---|---|---|
+| 10a_Frame | 2 front posts with base block and top cap, head beam protruding past posts, tie beam between posts | post 0.34, base 0.42x0.21, head beam 0.34 tall over 5.4, tie beam 0.30 |
+| 10b_Walls | plank wall panels left and right of the door, framed by thin corner posts, sill | wall 4.5 x 2.6, board 0.16, thickness 0.12 |
+| 10c_Doors | door frame posts and header, 4 lattice leaves, slatted transom, latch rail | opening 2.65 x 2.55, transom 0.42 |
+| 10d_OfferingBox | box with inset panel and short legs, in front of the doors | 1.38 x 0.8 x 0.55 |
+
+Placement : on the deck (y 1.6), wall plane z -1.9, posts 1.55 in front, centred on X.

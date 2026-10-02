@@ -1,0 +1,14 @@
+# Component_ShrinePlatform_11 : sub-component breakdown (refs/Component11.png)
+
+Local frame : platform centred on X, front edge at Z = 0, ground at Y = 0. Straight, axis aligned.
+
+| id | Sub-component | Parts | Driven by |
+|---|---|---|---|
+| 11a | Sub_DeckSlab | floor planks, perimeter fascia beam, top boards with joints | platform_width, platform_depth, deck_height, fascia_height, plank_width |
+| 11b | Sub_UnderPosts | square posts under the deck, cross beams between them, flared feet | post_size, post_rows, post_cols, foot_size |
+| 11c | Sub_Stairs | central flight of steps with its landing course | stair_width, step_count, riser, tread |
+| 11d | Sub_StairCheeks | two sloped cheek walls with a newel block at the top and at the bottom | cheek_thickness, newel_size |
+| 11e | Sub_CornerPosts | short posts standing on the deck corners, with their capitals | corner_post_size, corner_post_height |
+
+Read on the ref (1786 px wide) : total width 1690 px, stair width 500 px (0.30 of the total), deck fascia 90 px,
+post zone 200 px, 5 visible risers, cheeks rising from the ground to the deck level.

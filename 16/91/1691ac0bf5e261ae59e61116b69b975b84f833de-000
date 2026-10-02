@@ -1,0 +1,12 @@
+# Component_StoneLantern_14 breakdown
+Ref : refs/refplacement.png, left lantern cropped at 200 % (and the same shape in reforiginalcolor).
+Measured : total 5.3 m for a 1.55 m base, ratio 3.44. Camera solve gives 84 px/m at that depth.
+
+| Sub | Parts | Measures (m) |
+|---|---|---|
+| 14a_Base | thin ground slab then four stepped square plinths | 1.70x0.20, then 1.55x0.75, 1.30x0.60, 1.10x0.50, 0.92x0.42 |
+| 14b_Shaft | concave flared kurin, square chidai slab above it | kurin 1.10 tall, 0.75 -> 0.45 -> 0.62, slab 1.00x0.18 |
+| 14c_Chamber | hibukuro light box with a window on each face, band top and bottom | 0.85x0.95, windows 0.34x0.40 |
+| 14d_Roof | square kasa with upturned corners, ring and ball finial | roof 1.35 wide 0.55 tall, finial 0.50 |
+
+Placed on both sides of the path at x +- prx_lantern_x, z prx_lantern_z (the proxy boxes of 13b are kept, renamed _blockout and unplugged).

@@ -1,0 +1,13 @@
+# Component_Roof_09 : sub-component breakdown (refs/component-roof.png, refs/japaneseshringle01.png)
+
+Rule from Matthieu : model ONE tile, then INSTANCE it. Tiles are never placed by hand.
+
+| id | Sub-component | What it is | Driven by |
+|---|---|---|---|
+| 09a | Sub_TileModule | one kawara tile : curved pan + cover roll + lugs. 260 x 320 x 50 mm on the ref sheet | tile_width, tile_length, tile_thickness, tile_curve, roll_radius |
+| 09b | Sub_RoofField | the roof surfaces (main slopes + lower skirt) as a point grid with orientation, tiles copied on it by copytopoints | roof_run, roof_rise, eave_overhang, rows, cols |
+| 09c | Sub_CoverRolls | the rolls that run down the slope over the joints, instanced along each column line | roll_spacing |
+| 09d | Sub_RidgeAndHips | ridge stack and hip rolls with their end pieces | ridge_height, ridge_layers |
+| 09e | Sub_EaveCourse | the round end caps of the bottom course and the eave board | eave_cap_radius |
+
+Real dimensions read on the tile sheet : width 260 mm, length 320 mm, thickness 50 mm.

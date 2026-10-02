@@ -1,0 +1,12 @@
+# Component_Torii_12 breakdown
+Ref : refs/torii-composition.png, front view (bottom left). Scale : pillar centre span 288 px = 4.2 m (0.01458 m/px),
+span chosen from the path width at the torii in refplacement.png.
+
+| Sub | Parts | Measures (m) |
+|---|---|---|
+| 12a_Pillars | 2 tapered round pillars, daiwa ring at the top, octagonal kamebara base on a plinth | span 4.2, height 5.39, dia 0.76 -> 0.61, ring 0.85 x 0.29, base 1.06 -> 1.5, 1.0 tall |
+| 12b_Kasagi | curved top beam in two layers (kasagi over shimaki), ends rising and cut on a slant | length 7.9, rise at the ends 0.29, layers 0.30 + 0.36, depth 0.6 |
+| 12c_Nuki | straight tie beam through the pillars, central gakuzuka strut | nuki 7.0 x 0.44 x 0.35 at 4.64, strut 0.41 x 0.47 |
+
+Placement (camera solve on refplacement.png : horizon y 704, torii 154 px/m, shrine deck 34.4 px/m, f 965 px) :
+torii z 21.7 in front of the deck front, camera height 1.92.
