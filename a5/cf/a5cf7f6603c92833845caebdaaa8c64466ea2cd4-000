@@ -1,0 +1,32 @@
+{
+  "component": "Component_ShrinePlatform_11",
+  "active_version": "v001",
+  "versions": [
+    {
+      "version": "v001",
+      "label": "save_2035",
+      "dir_name": "v001_save_2035",
+      "timestamp": "2026-09-17 20:35:54",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_ShrinePlatform_11",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 3472,
+        "prims": 3348,
+        "bbox": [
+          [
+            -3.8399999141693115,
+            0.0,
+            -2.197999954223633
+          ],
+          [
+            3.8399999141693115,
+            2.2360000610351562,
+            2.615000009536743
+          ]
+        ]
+      },
+      "children_count": 9
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "component": "Component_SceneProxies_13",
+  "version": "v001",
+  "label": "v001",
+  "timestamp": "2026-09-17 16:56:19",
+  "src_hip": "/Users/zenray/Create/Build/Productions/ZenRayHoudini/ModelingJapan_01/ModelingJapan_01.hiplc",
+  "node_path": "/obj/JapanScene/Component_SceneProxies_13",
+  "children": [
+    {
+      "name": "merge_subcomponents",
+      "type": "merge"
+    },
+    {
+      "name": "Sub_13a_Komainu",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_13b_Lanterns",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_13c_Trees",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_13d_Path",
+      "type": "subnet"
+    },
+    {
+      "name": "normals",
+      "type": "normal"
+    },
+    {
+      "name": "tint",
+      "type": "color"
+    },
+    {
+      "name": "output0",
+      "type": "output"
+    }
+  ],
+  "external_inputs": [],
+  "hip_file": "graph.hiplc",
+  "proof_geo": {
+    "points": 2808,
+    "prims": 1642,
+    "bbox": [
+      [
+        -26.36054229736328,
+        0.0,
+        -29.69196128845215
+      ],
+      [
+        25.779829025268555,
+        30.742006301879883,
+        31.827960968017578
+      ]
+    ]
+  }
+}

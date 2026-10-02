@@ -1,0 +1,52 @@
+{
+  "component": "JapanScene",
+  "version": "v002",
+  "label": "platform_11_blockout",
+  "timestamp": "2026-09-17 14:22:07",
+  "src_hip": "/Users/zenray/Create/Build/Productions/ZenRayHoudini/ModelingJapan_01/ModelingJapan_01.hip",
+  "node_path": "/obj/JapanScene",
+  "children": [
+    {
+      "name": "Component_Roof_09",
+      "type": "subnet"
+    },
+    {
+      "name": "Component_Entrance_10",
+      "type": "subnet"
+    },
+    {
+      "name": "Component_ShrinePlatform_11",
+      "type": "subnet"
+    },
+    {
+      "name": "place_platform_11",
+      "type": "xform"
+    },
+    {
+      "name": "merge_components",
+      "type": "merge"
+    },
+    {
+      "name": "OUT_japan_v001",
+      "type": "null"
+    }
+  ],
+  "external_inputs": [],
+  "hip_file": "graph.hiplc",
+  "proof_geo": {
+    "points": 4424,
+    "prims": 4266,
+    "bbox": [
+      [
+        -3.5399999618530273,
+        0.0,
+        -4.610400199890137
+      ],
+      [
+        3.5399999618530273,
+        1.7344000339508057,
+        2.065000057220459
+      ]
+    ]
+  }
+}

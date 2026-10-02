@@ -1,0 +1,136 @@
+{
+  "component": "Component_Roof_09",
+  "active_version": "v004",
+  "versions": [
+    {
+      "version": "v001",
+      "label": "tile_module_v001",
+      "dir_name": "v001_tile_module_v001",
+      "timestamp": "2026-09-17 15:41:20",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_Roof_09",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 589088,
+        "prims": 353588,
+        "bbox": [
+          [
+            -5.039999961853027,
+            -0.057553183287382126,
+            -4.3434953689575195
+          ],
+          [
+            5.039999961853027,
+            2.8925859928131104,
+            4.3434953689575195
+          ]
+        ]
+      },
+      "children_count": 8
+    },
+    {
+      "version": "v002",
+      "label": "tile_hda_welded_v001",
+      "dir_name": "v002_tile_hda_welded_v001",
+      "timestamp": "2026-09-17 15:50:13",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_Roof_09",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 1540932,
+        "prims": 2292385,
+        "bbox": [
+          [
+            -5.039999961853027,
+            -0.057553183287382126,
+            -4.326881408691406
+          ],
+          [
+            5.039999961853027,
+            2.8925859928131104,
+            4.326881408691406
+          ]
+        ]
+      },
+      "children_count": 8
+    },
+    {
+      "version": "v003",
+      "label": "roof_from_tile_v004",
+      "dir_name": "v003_roof_from_tile_v004",
+      "timestamp": "2026-09-17 16:44:27",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_Roof_09",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 18392,
+        "prims": 17702,
+        "bbox": [
+          [
+            -4.565000057220459,
+            -3.620178461074829,
+            -2.5209598541259766
+          ],
+          [
+            4.565000057220459,
+            1.0099999904632568,
+            5.806608200073242
+          ]
+        ]
+      },
+      "children_count": 9
+    },
+    {
+      "version": "v004",
+      "label": "save_2035",
+      "dir_name": "v004_save_2035",
+      "timestamp": "2026-09-17 20:35:46",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_Roof_09",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 18392,
+        "prims": 17702,
+        "bbox": [
+          [
+            -4.565000057220459,
+            -3.620178461074829,
+            -2.5209598541259766
+          ],
+          [
+            4.565000057220459,
+            1.0099999904632568,
+            5.806608200073242
+          ]
+        ]
+      },
+      "children_count": 9
+    },
+    {
+      "version": "v005",
+      "label": "auto",
+      "dir_name": "v005_auto",
+      "timestamp": "2026-09-17 23:18:56",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_Roof_09",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 1163692,
+        "prims": 1718986,
+        "bbox": [
+          [
+            -4.840000152587891,
+            -0.0744805857539177,
+            -4.2637128829956055
+          ],
+          [
+            4.840000152587891,
+            2.9455525875091553,
+            4.2637128829956055
+          ]
+        ]
+      },
+      "children_count": 8
+    }
+  ]
+}

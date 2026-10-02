@@ -1,0 +1,94 @@
+# Short 01 camera : three shots of 5 s in ONE camera, driven by python expressions so the cuts are
+# hard and no keyframe can interpolate across them. Every number is a spare parm on the camera.
+# FR : trois plans dans une seule camera, coupures franches, tout reglable au curseur.
+# 2026-09-17 23:45
+import hou
+
+CAM = 'cam_short_01'
+FPS = 24
+PARMS = [                       # name, label, default
+    ('shot_len', 'Frames Per Shot', 120),
+    ('a_start_z', 'Shot A Start Z', 30.0),
+    ('a_end_z', 'Shot A End Z', 12.5),
+    ('a_start_y', 'Shot A Start Y', 1.92),
+    ('a_end_y', 'Shot A End Y', 2.60),
+    ('a_look_y', 'Shot A Look Height', 4.30),
+    ('b_pos_x', 'Shot B Position X', -13.0),
+    ('b_pos_y', 'Shot B Position Y', 10.5),
+    ('b_pos_z', 'Shot B Position Z', -15.0),
+    ('b_look_y', 'Shot B Look Height', 6.20),
+    ('c_radius', 'Shot C Orbit Radius', 17.0),
+    ('c_height', 'Shot C Orbit Height', 9.0),
+    ('c_start_deg', 'Shot C Start Angle', 205.0),
+    ('c_sweep_deg', 'Shot C Sweep', 120.0),
+    ('c_look_y', 'Shot C Look Height', 5.80),
+    ('subject_z', 'Subject Z (shrine centre)', -2.60),
+]
+
+POSE = '''
+import math
+n = hou.pwd()
+P = lambda s: n.evalParm(s)
+L = max(1, int(P("shot_len")))
+f = max(0.0, hou.frame() - 1.0)
+shot = min(2, int(f // L))
+t = (f - shot * L) / float(L)                     # 0 to 1 inside the shot
+sz = P("subject_z")
+if shot == 0:                                     # travelling : dolly in on the reference framing
+    pos = hou.Vector3(0.0, P("a_start_y") + (P("a_end_y") - P("a_start_y")) * t,
+                      P("a_start_z") + (P("a_end_z") - P("a_start_z")) * t)
+    tgt = hou.Vector3(0.0, P("a_look_y"), sz)
+elif shot == 1:                                   # static three quarter from behind the roof
+    pos = hou.Vector3(P("b_pos_x"), P("b_pos_y"), P("b_pos_z"))
+    tgt = hou.Vector3(0.0, P("b_look_y"), sz)
+else:                                             # turn over around the roof and the hall
+    a = math.radians(P("c_start_deg") + P("c_sweep_deg") * t)
+    pos = hou.Vector3(P("c_radius") * math.cos(a), P("c_height"), sz + P("c_radius") * math.sin(a))
+    tgt = hou.Vector3(0.0, P("c_look_y"), sz)
+rot = hou.hmath.buildRotateLookAt(pos, tgt, hou.Vector3(0, 1, 0)).extractRotates()
+return [pos[0], pos[1], pos[2], rot[0], rot[1], rot[2]][INDEX]
+'''
+
+
+def build():
+    obj = hou.node('/obj')
+    cam = obj.node(CAM) or obj.createNode('cam', CAM)
+    g = cam.parmTemplateGroup()
+    if g.find('shot_len') is None:
+        f = hou.FolderParmTemplate('f_short', 'Short 01', folder_type=hou.folderType.Tabs)
+        for name, label, d in PARMS:
+            if isinstance(d, int):
+                f.addParmTemplate(hou.IntParmTemplate(name, label, 1, (d,), min=1, max=600))
+            else:
+                f.addParmTemplate(hou.FloatParmTemplate(name, label, 1, (d,), min=-60.0, max=60.0))
+        g.append(f)
+        cam.setParmTemplateGroup(g)
+    for name, label, d in PARMS:
+        cam.parm(name).set(d)
+    for i, pn in enumerate(('tx', 'ty', 'tz', 'rx', 'ry', 'rz')):
+        cam.parm(pn).setExpression(POSE.replace('INDEX', str(i)), hou.exprLanguage.Python)
+    cam.parm('resx').set(1080)                    # vertical short, 9 by 16
+    cam.parm('resy').set(1920)
+    cam.parm('focal').set(24.0)
+    cam.parm('aperture').set(41.4214)
+    cam.parm('near').set(0.05)
+    last = int(cam.evalParm('shot_len')) * 3
+    hou.setFps(FPS)
+    hou.playbar.setFrameRange(1, last)
+    hou.playbar.setPlaybackRange(1, last)
+    hou.setFrame(1)
+    scene = hou.node('/obj/JapanScene')
+    scene.setDisplayFlag(True)
+    for vp in [l.strip().split()[0] for l in hou.hscript('viewls -n -v')[0].splitlines()
+               if '.world.' in l and l.strip()]:
+        hou.hscript('viewdisplay -G "*" %s' % vp)
+    try:
+        sv = [t for t in hou.ui.paneTabs() if t.type() == hou.paneTabType.SceneViewer][0]
+        sv.setPwd(obj)
+        sv.curViewport().setCamera(cam)
+    except Exception:
+        pass
+    hou.hipFile.save()
+    return {'camera': cam.path(), 'fps': FPS, 'frames': [1, last],
+            'shots': {'A_travelling': [1, last // 3], 'B_static_behind': [last // 3 + 1, 2 * last // 3],
+                      'C_turnover': [2 * last // 3 + 1, last]}}

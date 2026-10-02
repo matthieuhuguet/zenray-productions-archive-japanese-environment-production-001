@@ -1,0 +1,58 @@
+{
+  "component": "Component_StoneLantern_14",
+  "active_version": "v002",
+  "versions": [
+    {
+      "version": "v001",
+      "label": "v001",
+      "dir_name": "v001_v001",
+      "timestamp": "2026-09-17 20:38:50",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_StoneLantern_14",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 2028,
+        "prims": 1962,
+        "bbox": [
+          [
+            -0.8500000238418579,
+            0.0,
+            -0.8500000238418579
+          ],
+          [
+            0.8500000238418579,
+            5.75,
+            0.8500000238418579
+          ]
+        ]
+      },
+      "children_count": 8
+    },
+    {
+      "version": "v002",
+      "label": "chemin_projet_verifie",
+      "dir_name": "v002_chemin_projet_verifie",
+      "timestamp": "2026-09-17 23:15:14",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_StoneLantern_14",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 2028,
+        "prims": 1962,
+        "bbox": [
+          [
+            -0.8500000238418579,
+            0.0,
+            -0.8500000238418579
+          ],
+          [
+            0.8500000238418579,
+            5.75,
+            0.8500000238418579
+          ]
+        ]
+      },
+      "children_count": 8
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "component": "Component_SceneProxies_13",
+  "active_version": "v003",
+  "versions": [
+    {
+      "version": "v001",
+      "label": "v001",
+      "dir_name": "v001_v001",
+      "timestamp": "2026-09-17 16:56:19",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_SceneProxies_13",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 2808,
+        "prims": 1642,
+        "bbox": [
+          [
+            -26.36054229736328,
+            0.0,
+            -29.69196128845215
+          ],
+          [
+            25.779829025268555,
+            30.742006301879883,
+            31.827960968017578
+          ]
+        ]
+      },
+      "children_count": 8
+    },
+    {
+      "version": "v002",
+      "label": "save_2035",
+      "dir_name": "v002_save_2035",
+      "timestamp": "2026-09-17 20:36:03",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_SceneProxies_13",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 2808,
+        "prims": 1642,
+        "bbox": [
+          [
+            -26.36054229736328,
+            0.0,
+            -29.69196128845215
+          ],
+          [
+            25.779829025268555,
+            30.742006301879883,
+            31.827960968017578
+          ]
+        ]
+      },
+      "children_count": 8
+    },
+    {
+      "version": "v003",
+      "label": "clairiere_et_sol_pour_le_short",
+      "dir_name": "v003_clairiere_et_sol_pour_le_short",
+      "timestamp": "2026-09-17 23:45:29",
+      "saved_at_iso": "2026-09-17T23:45:29+02:00",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_SceneProxies_13",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 2704,
+        "prims": 1564,
+        "bbox": [
+          [
+            -60.0,
+            -0.25,
+            -60.0
+          ],
+          [
+            60.0,
+            30.779251098632812,
+            60.0
+          ]
+        ]
+      },
+      "children_count": 8
+    }
+  ]
+}

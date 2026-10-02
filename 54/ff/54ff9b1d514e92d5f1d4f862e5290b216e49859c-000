@@ -1,0 +1,56 @@
+{
+  "component": "Component_Torii_12",
+  "version": "v001",
+  "label": "v001",
+  "timestamp": "2026-09-17 16:56:15",
+  "src_hip": "/Users/zenray/Create/Build/Productions/ZenRayHoudini/ModelingJapan_01/ModelingJapan_01.hiplc",
+  "node_path": "/obj/JapanScene/Component_Torii_12",
+  "children": [
+    {
+      "name": "merge_subcomponents",
+      "type": "merge"
+    },
+    {
+      "name": "Sub_12a_Pillars",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_12b_Kasagi",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_12c_Nuki",
+      "type": "subnet"
+    },
+    {
+      "name": "normals",
+      "type": "normal"
+    },
+    {
+      "name": "tint",
+      "type": "color"
+    },
+    {
+      "name": "output0",
+      "type": "output"
+    }
+  ],
+  "external_inputs": [],
+  "hip_file": "graph.hiplc",
+  "proof_geo": {
+    "points": 920,
+    "prims": 800,
+    "bbox": [
+      [
+        -4.186999797821045,
+        0.0,
+        -0.7932429909706116
+      ],
+      [
+        4.186999797821045,
+        6.71999979019165,
+        0.7932429909706116
+      ]
+    ]
+  }
+}

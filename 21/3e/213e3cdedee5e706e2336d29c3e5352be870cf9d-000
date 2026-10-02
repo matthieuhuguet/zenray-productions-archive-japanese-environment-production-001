@@ -1,0 +1,60 @@
+{
+  "component": "Component_Roof_09",
+  "version": "v001",
+  "label": "tile_module_v001",
+  "timestamp": "2026-09-17 15:41:20",
+  "src_hip": "/Users/zenray/Create/Build/Productions/ZenRayHoudini/ModelingJapan_01/ModelingJapan_01.hip",
+  "node_path": "/obj/JapanScene/Component_Roof_09",
+  "children": [
+    {
+      "name": "merge_subcomponents",
+      "type": "merge"
+    },
+    {
+      "name": "Sub_09a_TileModule",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_09b_RoofField",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_09c_BigRolls",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_09d_Ridge",
+      "type": "subnet"
+    },
+    {
+      "name": "normals",
+      "type": "normal"
+    },
+    {
+      "name": "tint",
+      "type": "color"
+    },
+    {
+      "name": "output0",
+      "type": "output"
+    }
+  ],
+  "external_inputs": [],
+  "hip_file": "graph.hiplc",
+  "proof_geo": {
+    "points": 589088,
+    "prims": 353588,
+    "bbox": [
+      [
+        -5.039999961853027,
+        -0.057553183287382126,
+        -4.3434953689575195
+      ],
+      [
+        5.039999961853027,
+        2.8925859928131104,
+        4.3434953689575195
+      ]
+    ]
+  }
+}

@@ -1,0 +1,1120 @@
+# ModelingJapan_01 : project skeleton, same setup as GTA6_Stilt_House.
+# One object /obj/JapanScene holds every component as a subnet named Component_<Name>_<id>.
+# Every dimension is a spare parm on /obj/JapanScene ; placement is a separate transform per component.
+# FR : squelette du projet, un objet unique, un sous-reseau par composant, tout regle par curseurs.
+# 2026-09-17
+import hou
+
+TILE_HDA = '/Users/zenray/Create/Build/Productions/ZenRayHoudini/ModelingJapan_01/otls/ZenRayJapaneseRoofTile.hda'
+SCENE = '/obj/JapanScene'
+PROJECT = '/Users/zenray/Create/Build/Productions/ZenRayHoudini/ModelingJapan_01'
+
+# id, name : filled in from the reference breakdown image, then built one at a time.
+IDS = [
+    (9, 'Roof'), (10, 'Entrance'), (11, 'ShrinePlatform'), (12, 'Torii'), (13, 'SceneProxies'), (14, 'StoneLantern'),
+]
+BUILT = (9, 10, 11, 12, 13, 14)       # ids that have a real graph ; the others stay empty subnets
+SUBS = {}           # id -> {sub name : code} for components split in sub-components
+SUB_BEVEL = {}
+
+PARMS = [           # name, label, default, min, max  (HDA interface of the whole scene)
+    ('scene_scale', 'Scene Scale', 1.0, 0.1, 10.0),
+    # 11 shrine platform
+    ('platform_width', 'Platform Width', 7.0, 2.0, 20.0),
+    ('platform_depth', 'Platform Depth', 4.6, 2.0, 20.0),
+    ('deck_height', 'Deck Height', 1.6, 0.3, 4.0),
+    ('fascia_height', 'Deck Fascia Height', 0.34, 0.05, 1.0),
+    ('plank_width', 'Deck Plank Width', 0.42, 0.1, 1.5),
+    ('plank_gap', 'Deck Plank Gap', 0.012, 0.0, 0.05),
+    ('post_size', 'Under Post Size', 0.28, 0.05, 1.0),
+    ('post_pairs', 'Under Post Pairs Along X', 3, 2, 12),
+    ('post_pair_gap', 'Gap Inside A Post Pair', 0.62, 0.2, 2.0),
+    ('post_rows', 'Under Post Rows', 3, 1, 10),
+    ('foot_size', 'Post Foot Size', 0.42, 0.1, 1.2),
+    ('foot_height', 'Post Foot Height', 0.16, 0.02, 0.6),
+    ('cross_beam_height', 'Cross Beam Height', 0.18, 0.05, 0.6),
+    ('stair_width', 'Stair Width', 2.1, 0.6, 8.0),
+    ('step_count', 'Step Count', 5, 2, 15),
+    ('stair_tread', 'Stair Tread', 0.34, 0.15, 0.8),
+    ('cheek_thickness', 'Stair Cheek Thickness', 0.22, 0.05, 0.6),
+    ('cheek_height', 'Stair Cheek Height Above Steps', 0.28, 0.0, 1.0),
+    ('newel_size', 'Newel Block Size', 0.3, 0.1, 0.8),
+    ('corner_post_size', 'Corner Post Size', 0.26, 0.05, 0.8),
+    ('corner_post_height', 'Corner Post Height', 0.62, 0.1, 2.0),
+    ('platform_place', 'Platform Placement X', 0.0, -80.0, 80.0),
+    ('platform_place_y', 'Platform Placement Y', 0.0, -40.0, 40.0),
+    ('platform_place_z', 'Platform Placement Z', 0.0, -80.0, 80.0),
+    ('platform_place_yaw', 'Platform Placement Yaw (deg)', 0.0, -180.0, 180.0),
+    # 10 entrance facade, measured on component-interior-structure.png (0.0084 m/px)
+    ('ent_width', 'Entrance Head Beam Length', 6.0, 2.0, 20.0),
+    ('ent_post_span', 'Entrance Post Centre Span', 5.22, 1.0, 20.0),
+    ('ent_height', 'Entrance Post Height', 3.55, 1.5, 8.0),
+    ('ent_post_size', 'Entrance Post Size', 0.38, 0.1, 1.0),
+    ('ent_post_offset', 'Posts In Front Of The Wall', 0.25, 0.0, 5.0),
+    ('ent_beam_height', 'Head Beam Height', 0.38, 0.05, 1.0),
+    ('ent_wall_width', 'Wall Width', 5.0, 1.0, 20.0),
+    ('ent_wall_height', 'Wall Height', 2.89, 1.0, 8.0),
+    ('ent_side_depth', 'Side Wall Depth', 1.7, 0.2, 10.0),
+    ('ent_wall_thickness', 'Wall Thickness', 0.12, 0.03, 0.5),
+    ('ent_board', 'Wall Board Height', 0.18, 0.05, 0.6),
+    ('ent_door_width', 'Door Opening Width', 2.94, 0.5, 10.0),
+    ('ent_door_height', 'Door Opening Height', 2.83, 0.5, 6.0),
+    ('ent_box_width', 'Offering Box Width', 1.38, 0.2, 4.0),
+    ('ent_box_height', 'Offering Box Height', 0.8, 0.2, 3.0),
+    ('ent_box_depth', 'Offering Box Depth', 0.55, 0.2, 3.0),
+    ('ent_place_x', 'Entrance Placement X', 0.0, -80.0, 80.0),
+    ('ent_place_y', 'Entrance Placement Y', 1.6, -40.0, 40.0),
+    ('ent_place_z', 'Entrance Placement Z (wall plane)', -1.9, -80.0, 80.0),
+    ('ent_place_yaw', 'Entrance Placement Yaw (deg)', 0.0, -180.0, 180.0),
+    # 12 torii, measured on torii-composition.png front view (0.01458 m/px)
+    ('torii_span', 'Torii Pillar Span', 4.452, 1.0, 20.0),
+    ('torii_pillar_height', 'Torii Pillar Height', 5.713, 1.0, 20.0),
+    ('torii_pillar_dia_bottom', 'Pillar Diameter Bottom', 0.806, 0.1, 3.0),
+    ('torii_pillar_dia_top', 'Pillar Diameter Top', 0.647, 0.1, 3.0),
+    ('torii_lean', 'Pillar Inward Lean (m at the top)', 0.06, 0.0, 1.0),
+    ('torii_base_top', 'Base Width Top', 1.124, 0.1, 5.0),
+    ('torii_base_bottom', 'Base Width Bottom', 1.59, 0.1, 5.0),
+    ('torii_base_height', 'Base Height', 1.06, 0.1, 4.0),
+    ('torii_kasagi_length', 'Kasagi Length', 8.374, 1.0, 30.0),
+    ('torii_kasagi_rise', 'Kasagi End Rise', 0.307, 0.0, 2.0),
+    ('torii_kasagi_thick', 'Kasagi Thickness', 0.318, 0.05, 2.0),
+    ('torii_shimaki_thick', 'Shimaki Thickness', 0.382, 0.05, 2.0),
+    ('torii_kasagi_depth', 'Kasagi Depth', 0.636, 0.1, 3.0),
+    ('torii_nuki_length', 'Nuki Length', 7.42, 1.0, 30.0),
+    ('torii_nuki_y', 'Nuki Centre Height', 4.918, 0.5, 20.0),
+    ('torii_nuki_height', 'Nuki Height', 0.466, 0.05, 2.0),
+    ('torii_nuki_depth', 'Nuki Depth', 0.371, 0.05, 2.0),
+    ('torii_place_x', 'Torii Placement X', 0.0, -80.0, 80.0),
+    ('torii_place_y', 'Torii Placement Y', 0.0, -40.0, 40.0),
+    ('torii_place_z', 'Torii Placement Z', 21.7, -80.0, 80.0),
+    ('torii_place_yaw', 'Torii Placement Yaw (deg)', 0.0, -180.0, 180.0),
+    # 14 stone lantern, measured on the left lantern of refplacement.png (84 px/m at that depth)
+    ('lant_slab_w', 'Ground Slab Width', 1.70, 0.2, 5.0),
+    ('lant_slab_h', 'Ground Slab Height', 0.20, 0.05, 1.0),
+    ('lant_plinth1_w', 'Plinth 1 Width', 1.55, 0.2, 5.0),
+    ('lant_plinth1_h', 'Plinth 1 Height', 0.75, 0.05, 2.0),
+    ('lant_plinth2_w', 'Plinth 2 Width', 1.30, 0.2, 5.0),
+    ('lant_plinth2_h', 'Plinth 2 Height', 0.60, 0.05, 2.0),
+    ('lant_plinth3_w', 'Plinth 3 Width', 1.10, 0.2, 5.0),
+    ('lant_plinth3_h', 'Plinth 3 Height', 0.50, 0.05, 2.0),
+    ('lant_plinth4_w', 'Plinth 4 Width', 0.92, 0.2, 5.0),
+    ('lant_plinth4_h', 'Plinth 4 Height', 0.42, 0.05, 2.0),
+    ('lant_kurin_h', 'Kurin Height', 1.10, 0.1, 3.0),
+    ('lant_kurin_w0', 'Kurin Width Bottom', 0.75, 0.1, 3.0),
+    ('lant_kurin_wmid', 'Kurin Width Waist', 0.45, 0.05, 3.0),
+    ('lant_kurin_w1', 'Kurin Width Top', 0.62, 0.05, 3.0),
+    ('lant_chidai_w', 'Chidai Slab Width', 1.00, 0.1, 3.0),
+    ('lant_chidai_h', 'Chidai Slab Height', 0.18, 0.02, 1.0),
+    ('lant_box_w', 'Light Box Width', 0.85, 0.1, 3.0),
+    ('lant_box_h', 'Light Box Height', 0.95, 0.1, 3.0),
+    ('lant_window_w', 'Window Width', 0.34, 0.02, 2.0),
+    ('lant_window_h', 'Window Height', 0.40, 0.02, 2.0),
+    ('lant_roof_w', 'Roof Width', 1.35, 0.1, 4.0),
+    ('lant_roof_h', 'Roof Height', 0.55, 0.05, 2.0),
+    ('lant_roof_curl', 'Roof Corner Curl', 0.12, 0.0, 0.6),
+    ('lant_finial_h', 'Finial Height', 0.50, 0.05, 2.0),
+    # 13 blockout proxies from refplacement.png (world coordinates, deck front at z 0)
+    ('prx_komainu_x', 'Komainu Offset X', 4.3, 0.0, 30.0),
+    ('prx_komainu_z', 'Komainu Z', 5.1, -80.0, 80.0),
+    ('prx_lantern_x', 'Lantern Offset X', 3.0, 0.0, 30.0),
+    ('prx_lantern_z', 'Lantern Z', 16.5, -80.0, 80.0),
+    ('prx_lantern_height', 'Lantern Height', 5.2, 1.0, 12.0),
+    ('prx_path_width', 'Path Width', 2.2, 0.5, 10.0),
+    ('prx_path_end', 'Path End Z', 30.0, 0.0, 120.0),
+    ('prx_tree_count', 'Forest Tree Count', 90, 0, 600),
+    ('prx_tree_seed', 'Forest Seed', 7, 0, 999),
+    ('prx_forest_half', 'Forest Half Extent X', 26.0, 5.0, 150.0),
+    ('prx_forest_z0', 'Forest Z Start', -30.0, -150.0, 150.0),
+    ('prx_forest_z1', 'Forest Z End', 32.0, -150.0, 150.0),
+    ('prx_tree_height', 'Tree Height', 28.0, 3.0, 80.0),
+    ('prx_clear_x', 'Path Corridor Half Width Kept Free', 5.0, 0.0, 30.0),
+    ('prx_clearing_radius', 'Clearing Radius Around The Shrine', 14.0, 0.0, 60.0),
+    ('prx_ground_size', 'Ground Patch Size', 120.0, 10.0, 400.0),
+    # 09 roof : ONE tile module, instanced. Never place tiles by hand.
+    ('tile_width', 'Tile Width', 0.26, 0.08, 0.6),
+    ('tile_length', 'Tile Length', 0.32, 0.1, 0.8),
+    ('tile_thickness', 'Tile Shell Thickness', 0.028, 0.005, 0.15),
+    ('tile_curve', 'Tile Pan Sag', 0.0154, 0.0, 0.2),
+    ('tile_roll_radius', 'Tile Cover Roll Radius', 0.026, 0.01, 0.12),
+    ('tile_segments', 'Tile Cross Segments', 16, 4, 40),
+    ('tile_lug', 'Tile Lug Size', 0.02, 0.0, 0.1),
+    ('tile_trough', 'Tile Trough Position', 0.478, 0.2, 0.8),
+    ('tile_rise_ratio', 'Tile Roll Side Rise Ratio', 0.85, 0.2, 2.0),
+    ('tile_lip_width', 'Tile Lip Width', 0.033, 0.005, 0.08),
+    ('tile_lip_drop', 'Tile Lip Drop', 0.010, 0.0, 0.08),
+    # roof plan and curve, measured on roof_component.png : top view 630 px = 9.0 m, side view 0.01273 m/px
+    ('roof_width', 'Roof Width Along The Ridge', 9.0, 2.0, 30.0),
+    ('roof_front_run', 'Front Main Eave Run From Ridge', 3.93, 0.5, 15.0),
+    ('roof_porch_run', 'Porch Eave Run From Ridge', 5.79, 0.5, 20.0),
+    ('roof_porch_drop', 'Porch Eave Drop Below Ridge', 3.47, 0.2, 10.0),
+    ('roof_porch_width', 'Porch Width', 5.9, 1.0, 30.0),
+    ('roof_back_run', 'Back Eave Run From Ridge', 2.48, 0.5, 15.0),
+    ('roof_back_drop', 'Back Eave Drop Below Ridge', 2.64, 0.2, 10.0),
+    ('roof_curve_power', 'Roof Curve Power (1 = straight, >1 concave)', 1.45, 1.0, 3.0),
+    ('roof_eave_flare', 'Eave Upward Flare', 0.15, 0.0, 1.0),
+    ('roof_tile_scale', 'Tile Instance Scale', 1.38, 0.3, 4.0),
+    ('roof_tile_tilt', 'Tile Tilt (tail lift / length)', 0.2, 0.0, 0.5),
+    ('tile_overlap_length', 'Tile Overlap Along The Slope', 0.28, 0.0, 0.9),
+    ('big_roll_radius', 'Big Roll Radius', 0.11, 0.02, 0.4),
+    ('roll_outer_x', 'Outer Big Roll Offset', 4.2, 0.0, 15.0),
+    ('roll_inner_x', 'Second Big Roll Offset', 3.7, 0.0, 15.0),
+    ('roll_porch_x', 'Porch Big Roll Offset', 2.2, 0.0, 15.0),
+    ('ridge_height', 'Ridge Beam Height', 0.55, 0.1, 2.0),
+    ('ridge_width', 'Ridge Beam Depth', 0.56, 0.1, 2.0),
+    ('ridge_length', 'Ridge Beam Length', 7.7, 1.0, 30.0),
+    ('barge_disc_radius', 'Rake Disc Radius', 0.075, 0.01, 0.3),
+    ('fascia_board_height', 'Eave Fascia Height', 0.24, 0.02, 1.0),
+    ('rafter_spacing', 'Rafter End Spacing', 0.36, 0.1, 1.5),
+    ('roof_place_x', 'Roof Placement X', 0.0, -80.0, 80.0),
+    ('roof_place_y', 'Roof Placement Y (ridge height)', 8.51, -40.0, 40.0),
+    ('roof_place_z', 'Roof Placement Z (ridge)', -5.49, -80.0, 80.0),
+    ('roof_place_yaw', 'Roof Placement Yaw (deg)', 0.0, -180.0, 180.0),
+]
+
+HELPERS = r'''
+import math
+node = hou.pwd()
+geo = node.geometry()
+geo.addAttrib(hou.attribType.Prim, 'name', '')
+_up = node.parent()                      # the nearest ancestor that carries the parameter wins,
+while _up is not None:                   # so the same code runs in JapanScene or inside the tile HDA
+    if _up.parm('tile_width') is not None or _up.name() == 'JapanScene':
+        break
+    _up = _up.parent()
+_scene = _up
+def P(n):
+    n_ = _scene
+    while n_ is not None and n_.parm(n) is None:
+        n_ = n_.parent()
+    return (n_ or _scene).evalParm(n)
+def quad(pts, name):
+    poly = geo.createPolygon()
+    for p in pts:
+        pt = geo.createPoint(); pt.setPosition(p); poly.addVertex(pt)
+    poly.setAttribValue('name', name)
+def box8(c, name):
+    # 8 shared points : every box is a closed solid (clean booleans, no fuse needed)
+    pts = []
+    for q in c:
+        pt = geo.createPoint(); pt.setPosition(q); pts.append(pt)
+    # winding checked against Houdini's own box SOP : that is the orientation booleans expect.
+    for f in ((0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)):
+        poly = geo.createPolygon()
+        for i in f:
+            poly.addVertex(pts[i])
+        poly.setAttribValue('name', name)
+def aabb(x0, y0, z0, x1, y1, z1, name):
+    x0, x1 = min(x0, x1), max(x0, x1); y0, y1 = min(y0, y1), max(y0, y1); z0, z1 = min(z0, z1), max(z0, z1)
+    box8([(x0, y0, z0), (x1, y0, z0), (x1, y0, z1), (x0, y0, z1),
+          (x0, y1, z0), (x1, y1, z0), (x1, y1, z1), (x0, y1, z1)], name)
+def frame(axis):
+    a = hou.Vector3(axis).normalized()
+    up = hou.Vector3(0, 1, 0) if abs(a[1]) < 0.9 else hou.Vector3(1, 0, 0)
+    u = a.cross(up).normalized(); v = a.cross(u).normalized()
+    return a, u, v
+def tube(p0, p1, r, name, sides=16, cap0=False, cap1=False):
+    p0 = hou.Vector3(p0); p1 = hou.Vector3(p1)
+    a, u, v = frame(p1 - p0)
+    ring = lambda c: [c + (u * math.cos(2 * math.pi * i / sides) + v * math.sin(2 * math.pi * i / sides)) * r for i in range(sides)]
+    r0, r1 = ring(p0), ring(p1)
+    for i in range(sides):
+        j = (i + 1) % sides
+        quad([r0[i], r0[j], r1[j], r1[i]], name)
+    if cap0:
+        quad(list(reversed(r0)), name)
+    if cap1:
+        quad(r1, name)
+'''
+
+
+PLAT11 = HELPERS + r"""
+# Component_ShrinePlatform_11 : deck centred on X, front edge at Z = 0, ground at Y = 0.
+V3 = hou.Vector3
+geo.addAttrib(hou.attribType.Prim, 'Cd', (0.68, 0.68, 0.67))
+def paint(col, k=0):
+    for pr in geo.prims()[k:]:
+        pr.setAttribValue('Cd', col)
+W = P('platform_width'); D = P('platform_depth'); H = P('deck_height')
+fh = P('fascia_height'); pw = P('plank_width'); pg = P('plank_gap')
+ps = P('post_size'); prows = int(P('post_rows'))
+fs = P('foot_size'); fhh = P('foot_height'); cbh = P('cross_beam_height')
+sw = P('stair_width'); nsteps = int(P('step_count')); tread = P('stair_tread')
+ct = P('cheek_thickness'); ch = P('cheek_height'); nsz = P('newel_size')
+cps = P('corner_post_size'); cph = P('corner_post_height')
+x0, x1 = -W / 2.0, W / 2.0
+z0, z1 = 0.0, D
+riser = H / nsteps
+deck_top = H
+"""
+
+SUB11 = {
+'11a_DeckSlab': r"""
+# fascia beam all round, then floor planks laid across the front
+aabb(x0, deck_top - fh, z0, x1, deck_top - 0.05, z1, 'deck_fascia')
+n = max(1, int(round((D) / (pw + pg))))
+for i in range(n):
+    za = z0 + i * (D / n) + pg / 2
+    zb = z0 + (i + 1) * (D / n) - pg / 2
+    aabb(x0 - 0.04, deck_top - 0.05, za, x1 + 0.04, deck_top, zb, 'deck_plank')
+paint((0.72, 0.72, 0.71))
+""",
+'11b_UnderPosts': r"""
+# pairs of posts on flared feet, each pair tied by a beam, plus a long beam per row under the deck
+top = deck_top - fh
+pairs = max(2, int(P('post_pairs')))
+gap = P('post_pair_gap')
+for j in range(prows):
+    z = z0 + 0.45 + (D - 0.9) * j / max(1, prows - 1)
+    for i in range(pairs):
+        xc = x0 + 0.7 + (W - 1.4) * i / (pairs - 1)
+        for sx in (-1, 1):
+            x = xc + sx * gap / 2
+            aabb(x - fs / 2, 0.0, z - fs / 2, x + fs / 2, fhh, z + fs / 2, 'post_foot')
+            aabb(x - ps / 2, fhh, z - ps / 2, x + ps / 2, top - cbh, z + ps / 2, 'under_post')
+        aabb(xc - gap / 2 - ps / 2, top - cbh - 0.3, z - ps * 0.3, xc + gap / 2 + ps / 2, top - cbh - 0.3 + 0.16, z + ps * 0.3, 'pair_beam')
+    aabb(x0 + 0.25, top - cbh, z - ps * 0.45, x1 - 0.25, top, z + ps * 0.45, 'long_beam')
+paint((0.66, 0.66, 0.65))
+""",
+'11c_Stairs': r"""
+# central flight : each step is a full box, the top one meeting the deck
+for i in range(nsteps):
+    y = (i + 1) * riser
+    za = -(nsteps - i) * tread
+    aabb(-sw / 2, y - riser, za, sw / 2, y, za + tread + 0.02, 'stair_step')
+paint((0.7, 0.7, 0.69))
+""",
+'11d_StairCheeks': r"""
+# sloped cheek wall each side, with a newel block at the bottom and at the top
+run = nsteps * tread
+for side in (-1, 1):
+    xa = side * (sw / 2); xb = side * (sw / 2 + ct)
+    c = [(xa, 0.0, -run), (xb, 0.0, -run), (xb, 0.0, 0.0), (xa, 0.0, 0.0),
+         (xa, riser + ch, -run), (xb, riser + ch, -run), (xb, deck_top + ch, 0.0), (xa, deck_top + ch, 0.0)]
+    box8(c, 'stair_cheek')
+    aabb(xa, 0.0, -run - nsz * 0.55, xb, riser + ch + nsz * 0.75, -run + nsz * 0.25, 'stair_newel')
+    aabb(xa - 0.02, deck_top - 0.05, -0.1, xb + 0.02, deck_top + ch + nsz * 0.5, 0.18, 'stair_newel')
+paint((0.7, 0.7, 0.69))
+""",
+'11e_CornerPosts': r"""
+# corner posts with capitals, plus the SHORT stepped brackets at each deck end (ref : two small steps, not shelves)
+bz = D * 0.5
+bw_ = min(0.75, D * 0.34)
+for sx in (-1, 1):
+    for z in (z0 + 0.24, z1 - 0.24):
+        x = sx * (W / 2 - 0.2)
+        aabb(x - cps / 2, deck_top, z - cps / 2, x + cps / 2, deck_top + cph, z + cps / 2, 'corner_post')
+        aabb(x - cps * 0.75, deck_top + cph, z - cps * 0.75, x + cps * 0.75, deck_top + cph + cps * 0.4, z + cps * 0.75, 'corner_capital')
+    xe = sx * (W / 2)
+    aabb(xe, deck_top - fh - 0.2, bz - bw_ / 2, xe + sx * 0.34, deck_top - fh, bz + bw_ / 2, 'end_bracket')
+    aabb(xe + sx * 0.06, deck_top - fh - 0.38, bz - bw_ * 0.34, xe + sx * 0.24, deck_top - fh - 0.2, bz + bw_ * 0.34, 'end_bracket')
+paint((0.66, 0.66, 0.65))
+""",
+}
+SUB11_BEVEL = {'11a_DeckSlab': 0.008, '11b_UnderPosts': 0.008, '11c_Stairs': 0.01, '11d_StairCheeks': 0.012, '11e_CornerPosts': 0.008}
+
+ROOF09 = HELPERS + r"""
+# Component_Roof_09 shared frame. Tile module : pan curved across X, running along Z, cover roll on +X edge.
+V3 = hou.Vector3
+geo.addAttrib(hou.attribType.Prim, 'Cd', (0.72, 0.72, 0.71))
+def paint(col, k=0):
+    for pr in geo.prims()[k:]:
+        pr.setAttribValue('Cd', col)
+def pl(pts, name):
+    q = geo.createPolygon()
+    for x in pts:
+        q.addVertex(x)
+    q.setAttribValue('name', name)
+def cylx(c, axis, r, h, name, seg=20, cap=True):
+    c = V3(c); axis = V3(axis).normalized(); _, u, v = frame(axis)
+    r0, r1 = [], []
+    for j in range(seg):
+        a = 2 * math.pi * j / seg
+        d = u * math.cos(a) + v * math.sin(a)
+        q = geo.createPoint(); q.setPosition(c + d * r); r0.append(q)
+        q = geo.createPoint(); q.setPosition(c + d * r + axis * h); r1.append(q)
+    for j in range(seg):
+        jj = (j + 1) % seg
+        pl([r1[j], r1[jj], r0[jj], r0[j]], name)
+    if cap:
+        pl(r0, name); pl(list(reversed(r1)), name)
+def roof_drop(a, side):
+    # a = horizontal distance from the ridge. side +1 = front (toward +Z, carries the porch), -1 = back.
+    # Concave : steep at the ridge, flat at the eave, measured power 1.45 on the side view.
+    R = P('roof_porch_run') if side > 0 else P('roof_back_run')
+    D = P('roof_porch_drop') if side > 0 else P('roof_back_drop')
+    sN = min(1.0, max(0.0, a / R))
+    return -D * (1.0 - (1.0 - sN) ** P('roof_curve_power')) + P('roof_eave_flare') * sN ** 8
+def roof_pt(a, side):
+    return hou.Vector3(0.0, roof_drop(a, side), side * a)
+class RoofCurve:
+    # arc length table of one side, so rows are spaced ALONG the curved surface
+    def __init__(self, side, a_end, n=600):
+        self.side = side; self.a = [a_end * i / float(n) for i in range(n + 1)]
+        self.s = [0.0]
+        for i in range(n):
+            self.s.append(self.s[-1] + (roof_pt(self.a[i + 1], side) - roof_pt(self.a[i], side)).length())
+    def a_at(self, target):
+        s = self.s
+        if target <= 0: return 0.0
+        for i in range(len(s) - 1):
+            if s[i + 1] >= target:
+                f = (target - s[i]) / max(1e-9, s[i + 1] - s[i])
+                return self.a[i] + f * (self.a[i + 1] - self.a[i])
+        return self.a[-1]
+    def frame(self, a):
+        e = 0.002
+        d = (roof_pt(a + e, self.side) - roof_pt(max(0.0, a - e), self.side)).normalized()   # down the slope
+        n = hou.Vector3(0.0, abs(d[2]), self.side * abs(d[1])).normalized()                   # up and OUT of the roof
+        return d, n
+def field_half(width):
+    # half width actually covered by whole tile columns : every edge piece aligns on it
+    px = TW * P('roof_tile_scale')
+    return int(width / px) * px / 2.0
+def sweep_tube(pts, r, name, sides=12):
+    # tube along a polyline lying in a YZ plane ; u stays on X so the rings never twist
+    rings = []
+    for i, c in enumerate(pts):
+        t = (pts[min(i + 1, len(pts) - 1)] - pts[max(i - 1, 0)]).normalized()
+        u = hou.Vector3(1.0, 0.0, 0.0); v = t.cross(u).normalized()
+        ring = []
+        for j in range(sides):
+            ang = 2 * math.pi * j / sides
+            q = geo.createPoint(); q.setPosition(c + (u * math.cos(ang) + v * math.sin(ang)) * r); ring.append(q)
+        rings.append(ring)
+    for i in range(len(rings) - 1):
+        r0, r1 = rings[i], rings[i + 1]
+        for j in range(sides):
+            jj = (j + 1) % sides
+            pl([r1[j], r1[jj], r0[jj], r0[j]], name)
+    pl(rings[0], name); pl(list(reversed(rings[-1])), name)
+TW = P('tile_width'); TL = P('tile_length'); TT = P('tile_thickness')
+TC = P('tile_curve'); RR = P('tile_roll_radius'); SEG = int(P('tile_segments')); LUG = P('tile_lug')
+TR = P('tile_trough'); RATIO = P('tile_rise_ratio')
+LIPW = P('tile_lip_width'); LIPD = P('tile_lip_drop')
+"""
+
+TILE09 = r"""
+# THE TILE MODULE, measured on the front view of japaneseshringle01.png (scale 0.446 mm per pixel) :
+# 260 mm across, a 33 mm lip block on the free edge, a 171 mm pan that sags only 15 mm, and a round
+# cover roll of 28 mm radius that closes the 260 mm. The sag is SHALLOW : that is the angle of the ref.
+# FR : le bac ne creuse que 15 mm sur 171, c est ce qui donne l angle juste.
+xL = -TW / 2.0
+half = math.sqrt(max(1e-9, RR * RR - (TT / 2.0) ** 2))
+xR = TW / 2.0 - RR - half                # the roll closes exactly on the nominal width
+xP0 = xL + LIPW                          # the pan starts at the right face of the lip block
+span = xR - xP0
+
+
+def pan_y(u):                            # u = 0 at the lip, 1 at the roll ; trough at TR
+    if u < TR:
+        return TC * ((TR - u) / TR) ** 2
+    return TC * RATIO * ((u - TR) / (1.0 - TR)) ** 2
+
+
+def extrude(sect, z0, z1, name):
+    # the section must be wound like Houdini's own box SOP, otherwise the solid is inside out
+    # and a boolean union silently turns into an intersection.
+    # FR : meme sens que le box SOP, sinon le boolean detruit tout en silence.
+    area = 0.0
+    for i in range(len(sect)):
+        x0_, y0_ = sect[i]; x1_, y1_ = sect[(i + 1) % len(sect)]
+        area += x0_ * y1_ - x1_ * y0_
+    if area > 0:
+        sect = list(reversed(sect))
+    a, b = [], []
+    for x, y in sect:
+        q = geo.createPoint(); q.setPosition((x, y, z0)); a.append(q)
+        q = geo.createPoint(); q.setPosition((x, y, z1)); b.append(q)
+    n = len(sect)
+    for i in range(n):
+        j = (i + 1) % n
+        pl([a[i], a[j], b[j], b[i]], name)
+    pl(list(reversed(a)), name)
+    pl(b, name)
+
+
+# ONE closed cross section carries the lip, the pan and the cover roll, so the tile comes out of the
+# extrusion already welded : no boolean, no floating piece.
+yT0 = pan_y(0.0); yB0 = yT0 - TT
+notch_w = LIPW * 0.45; notch_h = TT * 0.055   # the small notch cut in the top left of the lip block
+cy = pan_y(1.0) - TT / 2.0                    # the roll circle passes through both ends of the pan
+cx = xR + half
+a0 = math.atan2(pan_y(1.0) - cy, xR - cx)
+a1 = math.atan2(pan_y(1.0) - TT - cy, xR - cx)
+sect = [(xL, yT0 - notch_h), (xL + notch_w, yT0 - notch_h), (xL + notch_w, yT0)]
+for i in range(SEG + 1):                      # pan, upper face
+    u = i / float(SEG)
+    sect.append((xP0 + span * u, pan_y(u)))
+nroll = max(14, SEG)
+for i in range(1, nroll):                     # cover roll, the outside of the circle
+    ang = a0 + (a1 - a0) * i / float(nroll)   # the short way round, outside the pan
+    sect.append((cx + RR * math.cos(ang), cy + RR * math.sin(ang)))
+for i in range(SEG + 1):                      # pan, under face, back to the lip
+    u = 1.0 - i / float(SEG)
+    sect.append((xP0 + span * u, pan_y(u) - TT))
+sect += [(xP0, yB0 - LIPD), (xL, yB0 - LIPD)]
+extrude(sect, 0.0, TL, 'tile_body')
+# four interlocking tabs on the sides, two per edge, biting into the body so they weld
+for f in (0.14, 0.60):
+    z0 = TL * f; z1 = z0 + TL * 0.18
+    aabb(xL - LUG * 1.1, yB0 - LIPD * 0.75, z0, xL + LUG * 0.4, yB0 - LIPD * 0.3, z1, 'tile_tab')
+    aabb(cx + RR - LUG * 0.6, cy - RR * 0.3, z0, cx + RR + LUG * 1.1, cy + RR * 0.15, z1, 'tile_tab')
+paint((0.74, 0.74, 0.73))
+"""
+
+FIELD09 = r"""
+# THE ROOF FIELD : one point per tile, sampled ALONG the curved slope, oriented by the local frame.
+# The tile HDA is copied on these points : no tile is ever placed by hand.
+# Rows are laid out from the EAVE up, so the last course ends exactly on the eave line.
+W = P('roof_width'); PW = P('roof_porch_width'); SC = P('roof_tile_scale'); K = P('roof_tile_tilt')
+L = TL * SC; pitch = L * (1.0 - P('tile_overlap_length')); px = TW * SC
+geo.addAttrib(hou.attribType.Point, 'N', (0.0, 0.0, 1.0))
+geo.addAttrib(hou.attribType.Point, 'up', (0.0, 1.0, 0.0))
+geo.addAttrib(hou.attribType.Point, 'pscale', 1.0)
+geo.addAttrib(hou.attribType.Point, 'part', '')
+s_min = P('ridge_width') * 0.35
+def columns(width):
+    n = int(width / px)
+    return [(c - (n - 1) / 2.0) * px for c in range(n)]
+def lay(side, a_eave, width, s_from=None, part='field'):
+    cur = RoofCurve(side, max(a_eave, P('roof_porch_run') if side > 0 else a_eave))
+    s_end = cur.s[-1] if side < 0 else RoofCurve(side, a_eave).s[-1]
+    k = int((s_end - L - s_min) / pitch)
+    s0 = s_end - L - k * pitch if s_from is None else s_from
+    rows = []
+    s_head = s0
+    while s_head + L <= s_end + 1e-6:
+        a = cur.a_at(s_head); d, n = cur.frame(a)
+        nn = (d * K + n).normalized(); dd = (d - n * K).normalized()
+        for x in columns(width):
+            q = geo.createPoint(); q.setPosition(roof_pt(a, side) + n * 0.01 + hou.Vector3(x, 0, 0))
+            q.setAttribValue('N', tuple(dd)); q.setAttribValue('up', tuple(nn))
+            q.setAttribValue('pscale', SC); q.setAttribValue('part', part)
+        rows.append(s_head)
+        s_head += pitch
+    return s0, rows
+# front main slope, full width, ends on the main eave
+s0, front_rows = lay(1, P('roof_front_run'), W)
+# porch : the same grid carries on down the same curve, porch width only
+cur_p = RoofCurve(1, P('roof_porch_run'))
+s_head = front_rows[-1] + pitch
+while s_head + L <= cur_p.s[-1] + 1e-6:
+    a = cur_p.a_at(s_head); d, n = cur_p.frame(a)
+    nn = (d * K + n).normalized(); dd = (d - n * K).normalized()
+    for x in columns(PW):
+        q = geo.createPoint(); q.setPosition(roof_pt(a, 1) + n * 0.01 + hou.Vector3(x, 0, 0))
+        q.setAttribValue('N', tuple(dd)); q.setAttribValue('up', tuple(nn))
+        q.setAttribValue('pscale', SC); q.setAttribValue('part', 'porch')
+    s_head += pitch
+# back slope, full width
+lay(-1, P('roof_back_run'), W)
+# ridge cover : the SAME tile laid along the ridge, head to tail
+RH = P('ridge_height'); RL = P('ridge_length'); sc2 = SC * 0.75
+n_r = int(RL / (TL * sc2 * 0.72))
+for i in range(n_r):
+    x = -RL / 2 + i * RL / n_r
+    q = geo.createPoint(); q.setPosition((x, RH, -TW * sc2 / 2 + TW * sc2 * 0.5))
+    q.setAttribValue('N', (1.0, 0.0, 0.0)); q.setAttribValue('up', (0.0, 1.0, 0.0))
+    q.setAttribValue('pscale', sc2); q.setAttribValue('part', 'ridge_cap')
+"""
+
+ROLLS09 = r"""
+# Big cover rolls following the curve, on the lines measured in the top view :
+# two pairs on the outer edges down to the main eave, one pair on the porch lines down to the porch eave,
+# and the same three pairs on the back slope.
+BR = P('big_roll_radius'); W = P('roof_width')
+def roll(x, side, a_end):
+    pts = []
+    n = 40
+    for i in range(n + 1):
+        a = 0.12 + (a_end - 0.12) * i / float(n)
+        cur = RoofCurve(side, max(a + 0.01, 0.02), n=8)
+        d, nrm = cur.frame(a)
+        pts.append(roof_pt(a, side) + nrm * (BR * 0.85) + hou.Vector3(x, 0, 0))
+    sweep_tube(pts, BR, 'big_roll', sides=12)
+for sx in (-1, 1):
+    for off in (P('roll_outer_x'), P('roll_inner_x')):
+        roll(sx * off, 1, P('roof_front_run'))
+        roll(sx * off, -1, P('roof_back_run'))
+    roll(sx * P('roll_porch_x'), 1, P('roof_porch_run'))
+    roll(sx * P('roll_porch_x'), -1, P('roof_back_run'))
+"""
+
+RIDGE09 = r"""
+# Ridge beam, its end blocks (onigawara, three stacked steps) and the rake discs that line both gables.
+RH = P('ridge_height'); RWD = P('ridge_width'); RL = P('ridge_length'); W = P('roof_width')
+aabb(-RL / 2, -0.12, -RWD / 2, RL / 2, RH, RWD / 2, 'ridge_beam')
+aabb(-RL / 2, RH * 0.72, -RWD / 2 - 0.03, RL / 2, RH * 0.8, RWD / 2 + 0.03, 'ridge_band')
+for sx in (-1, 1):
+    x0 = sx * RL / 2
+    for i, (w, h) in enumerate(((0.62, 0.34), (0.5, 0.3), (0.36, 0.28))):
+        y0 = -0.2 + sum(hh for _, hh in ((0.62, 0.34), (0.5, 0.3), (0.36, 0.28))[:i])
+        aabb(x0, y0, -RWD * w, x0 + sx * (0.42 - 0.07 * i), y0 + h, RWD * w, 'ridge_end')
+    aabb(x0 + sx * 0.08, RH + 0.3, -0.06, x0 + sx * 0.34, RH + 0.46, 0.06, 'ridge_finial')
+# rake discs : one short roll end per course, facing out of each gable, and along the porch sides
+DR = P('barge_disc_radius'); SC = P('roof_tile_scale'); pitch = TL * SC * (1.0 - P('tile_overlap_length'))
+def discs(side, a_end, x_edge):
+    cur = RoofCurve(side, a_end)
+    s_ = cur.s[-1] - pitch * 0.5
+    while s_ > P('ridge_width') * 0.4:
+        a = cur.a_at(s_); d, n = cur.frame(a)
+        c = roof_pt(a, side) + n * (DR * 1.1)
+        cylx((x_edge - (0.06 if x_edge > 0 else -0.06), c[1], c[2]), (1.0 if x_edge > 0 else -1.0, 0, 0), DR, 0.14, 'rake_disc', seg=10)
+        s_ -= pitch
+HW = field_half(W); HP = field_half(P('roof_porch_width'))
+for sx in (-1, 1):
+    discs(1, P('roof_front_run'), sx * HW)
+    discs(-1, P('roof_back_run'), sx * HW)
+"""
+
+EAVE09 = r"""
+# Eave boards and rafter ends under the tile edges : main front eave outside the porch, porch eave,
+# porch sides and back eave. Positions come from the same curve, nothing is typed by hand.
+W = 2.0 * field_half(P('roof_width')); PW = 2.0 * field_half(P('roof_porch_width')); FH = P('fascia_board_height'); SP = P('rafter_spacing')
+def eave(side, a, x0, x1):
+    y = roof_drop(a, side); z = side * a
+    aabb(x0, y - FH - 0.05, z - side * 0.08, x1, y - 0.05, z, 'fascia')
+    n = int((x1 - x0) / SP)
+    for i in range(n + 1):
+        x = x0 + (x1 - x0) * i / float(max(1, n))
+        aabb(x - 0.05, y - FH - 0.02, z - side * 0.45, x + 0.05, y - FH * 0.35, z - side * 0.06, 'rafter')
+for sx in (-1, 1):
+    lo, hi = sorted((sx * PW / 2, sx * W / 2))
+    eave(1, P('roof_front_run') - 0.05, lo, hi)
+eave(1, P('roof_porch_run') - 0.05, -PW / 2, PW / 2)
+eave(-1, P('roof_back_run') - 0.05, -W / 2, W / 2)
+# porch side boards following the curve between the main eave and the porch eave
+for sx in (-1, 1):
+    a0 = P('roof_front_run'); a1 = P('roof_porch_run')
+    m = 10
+    for i in range(m):
+        aa = a0 + (a1 - a0) * i / m; ab = a0 + (a1 - a0) * (i + 1) / m
+        ya = roof_drop(aa, 1); yb = roof_drop(ab, 1); x = sx * PW / 2
+        box8([(x - 0.04, ya - FH - 0.05, aa), (x + 0.04, ya - FH - 0.05, aa), (x + 0.04, yb - FH - 0.05, ab), (x - 0.04, yb - FH - 0.05, ab),
+              (x - 0.04, ya - 0.05, aa), (x + 0.04, ya - 0.05, aa), (x + 0.04, yb - 0.05, ab), (x - 0.04, yb - 0.05, ab)], 'porch_side_board')
+"""
+
+SUB09 = {'09a_TileModule': TILE09, '09b_RoofField': FIELD09, '09c_BigRolls': ROLLS09, '09d_Ridge': RIDGE09, '09e_Eaves': EAVE09}
+SUB09_BEVEL = {'09a_TileModule': 0.0, '09b_RoofField': 0.0, '09c_BigRolls': 0.0, '09d_Ridge': 0.012, '09e_Eaves': 0.01}   # the tile stays light : it is instanced thousands of times
+
+
+ENT10 = HELPERS + r"""
+# Component_Entrance_10 : origin at the bottom centre of the wall, the facade faces +Z, the wall front
+# face is at Z = 0 and the free-standing posts stand ent_post_offset in front of it.
+geo.addAttrib(hou.attribType.Prim, 'Cd', (0.66, 0.66, 0.65))
+SD = P('ent_side_depth')
+W = P('ent_width'); SPAN = P('ent_post_span'); H = P('ent_height'); PS = P('ent_post_size')
+PO = P('ent_post_offset'); BH = P('ent_beam_height')
+WW = P('ent_wall_width'); WH = P('ent_wall_height'); WT = P('ent_wall_thickness'); BD = P('ent_board')
+DW = P('ent_door_width'); DH = P('ent_door_height')
+XW, XH, XD = P('ent_box_width'), P('ent_box_height'), P('ent_box_depth')
+"""
+
+FRAME10 = r"""
+# two posts on base blocks, head beam that overshoots the posts, tie beam under it, cap blocks on top
+for sx in (-1, 1):
+    x = sx * SPAN / 2
+    aabb(x - PS * 0.62, 0.0, PO - PS * 0.62, x + PS * 0.62, PS * 0.62, PO + PS * 0.62, 'post_base')
+    aabb(x - PS / 2, 0.0, PO - PS / 2, x + PS / 2, H + BH * 0.5, PO + PS / 2, 'post')
+    aabb(x - PS * 0.66, H + BH * 0.5, PO - PS * 0.66, x + PS * 0.66, H + BH * 0.95, PO + PS * 0.66, 'post_cap')
+    # beam that ties each post back to the wall
+    aabb(x - PS * 0.35, H - BH * 1.9, -WT, x + PS * 0.35, H - BH * 1.1, PO, 'tie_back')
+aabb(-W / 2, H - BH * 0.5, PO - PS * 0.45, W / 2, H + BH * 0.5, PO + PS * 0.45, 'head_beam')
+aabb(-SPAN / 2, H - BH * 1.95, PO - PS * 0.4, SPAN / 2, H - BH * 1.05, PO + PS * 0.4, 'tie_beam')
+"""
+
+WALLS10 = r"""
+# plank walls either side of the door opening, thin framing posts, a sill and a top rail
+x_door = DW / 2 + 0.28
+for sx in (-1, 1):
+    x0, x1 = sorted((sx * x_door, sx * WW / 2))
+    aabb(x0, 0.0, -WT, x1, WH, 0.0, 'wall_panel')
+    n = int(WH / BD)
+    for i in range(1, n):
+        y = i * WH / n
+        aabb(x0, y - 0.012, 0.0, x1, y + 0.012, 0.012, 'board_joint')
+    for xe in (x0, x1):
+        aabb(xe - 0.09, 0.0, -WT - 0.02, xe + 0.09, WH + 0.1, 0.05, 'wall_post')
+# side walls returning back, as in the side and perspective views, with a back corner post
+for sx in (-1, 1):
+    xa, xb = sorted((sx * WW / 2, sx * (WW / 2 - WT)))
+    aabb(xa, 0.0, -SD, xb, WH, -WT, 'side_wall')
+    xo = sx * WW / 2
+    n = int(WH / BD)
+    for i in range(1, n):
+        y = i * WH / n
+        xj0, xj1 = sorted((xo, xo + sx * 0.012))
+        aabb(xj0, y - 0.012, -SD, xj1, y + 0.012, -WT, 'board_joint')
+    aabb(xo - 0.1, 0.0, -SD - 0.1, xo + 0.1, WH + 0.34, -SD + 0.1, 'back_post')
+    xs0, xs1 = sorted((xo - sx * 0.09, xo + sx * 0.09))
+    aabb(xs0, WH + 0.1, -SD, xs1, WH + 0.34, -WT, 'side_top_rail')
+aabb(-WW / 2 - 0.09, 0.0, -WT - 0.03, WW / 2 + 0.09, 0.14, 0.07, 'sill')
+aabb(-WW / 2 - 0.09, WH + 0.1, -WT - 0.03, WW / 2 + 0.09, WH + 0.34, 0.07, 'top_rail')
+"""
+
+DOORS10 = r"""
+# door frame, slatted transom and four lattice leaves with a latch rail across
+FW = 0.28; y_tr = DH - 0.42
+for sx in (-1, 1):
+    xa, xb = sorted((sx * DW / 2, sx * (DW / 2 + FW)))
+    aabb(xa, 0.14, -WT - 0.02, xb, WH + 0.1, 0.06, 'door_post')
+aabb(-DW / 2, DH, -WT - 0.02, DW / 2, WH + 0.1, 0.06, 'door_header')
+aabb(-DW / 2, 0.14, -WT, DW / 2, DH, -WT * 0.5, 'door_back')          # closes the opening
+leaf = DW / 4.0
+for i in range(4):
+    x0 = -DW / 2 + i * leaf; x1 = x0 + leaf
+    for xe in (x0, x1):
+        aabb(xe - 0.035, 0.14, -WT * 0.5, xe + 0.035, DH, 0.0, 'leaf_stile')
+    aabb(x0, y_tr - 0.04, -WT * 0.5, x1, y_tr + 0.04, 0.0, 'leaf_rail')
+    for j in range(1, 7):                                   # transom slats
+        xs = x0 + j * leaf / 7
+        aabb(xs - 0.012, y_tr + 0.04, -WT * 0.5, xs + 0.012, DH, -0.01, 'transom_slat')
+    xm = (x0 + x1) / 2
+    aabb(xm - 0.022, 0.14, -WT * 0.5, xm + 0.022, y_tr, -0.005, 'muntin')
+    for yr in (0.62, 1.1, 1.55, 1.95):
+        aabb(x0, yr - 0.022, -WT * 0.5, x1, yr + 0.022, -0.005, 'lattice_rail')
+aabb(-DW / 2 - 0.3, 1.34, 0.0, DW / 2 + 0.05, 1.42, 0.035, 'latch_rail')
+aabb(-DW / 2 - 0.22, 1.28, 0.03, -DW / 2 - 0.1, 1.48, 0.07, 'latch')
+"""
+
+BOX10 = r"""
+# offering box standing in front of the doors : body, raised lid rim, front inset panel, four short legs
+z0 = 0.25; LG = 0.12
+aabb(-XW / 2, LG, z0, XW / 2, XH, z0 + XD, 'box_body')
+aabb(-XW / 2 - 0.03, XH, z0 - 0.03, XW / 2 + 0.03, XH + 0.06, z0 + XD + 0.03, 'box_rim')
+aabb(-XW * 0.36, LG + XH * 0.22, z0 + XD, XW * 0.36, XH * 0.78, z0 + XD + 0.02, 'box_panel')
+for sx in (-1, 1):
+    for zz in (z0 + 0.04, z0 + XD - 0.12):
+        aabb(sx * XW / 2 - (0.1 if sx > 0 else 0), 0.0, zz, sx * XW / 2 + (0 if sx > 0 else 0.1), LG, zz + 0.08, 'box_leg')
+"""
+
+SUB10 = {'10a_Frame': FRAME10, '10b_Walls': WALLS10, '10c_Doors': DOORS10, '10d_OfferingBox': BOX10}
+SUB10_BEVEL = {'10a_Frame': 0.015, '10b_Walls': 0.0, '10c_Doors': 0.0, '10d_OfferingBox': 0.01}
+
+
+TORII12 = HELPERS + r"""
+# Component_Torii_12 : origin on the ground at the centre, pillars along X, the gate faces +Z.
+geo.addAttrib(hou.attribType.Prim, 'Cd', (0.66, 0.66, 0.65))
+def pl(pts, name):
+    q = geo.createPolygon()
+    for x in pts:
+        q.addVertex(x)
+    q.setAttribValue('name', name)
+def frustum(c0, c1, r0, r1, sides, name, rot=0.0):
+    # closed prism between two centres, radius r0 at c0 and r1 at c1, wound like the box SOP
+    c0 = hou.Vector3(c0); c1 = hou.Vector3(c1)
+    a0, a1 = [], []
+    for j in range(sides):
+        ang = rot + 2 * math.pi * j / sides
+        d = hou.Vector3(math.cos(ang), 0.0, math.sin(ang))
+        q = geo.createPoint(); q.setPosition(c0 + d * r0); a0.append(q)
+        q = geo.createPoint(); q.setPosition(c1 + d * r1); a1.append(q)
+    for j in range(sides):
+        jj = (j + 1) % sides
+        pl([a0[jj], a1[jj], a1[j], a0[j]], name)
+    pl(list(reversed(a0)), name); pl(a1, name)
+def curved_beam(half_len, y_bottom, thick, depth, rise, name, n=24, slant=0.0):
+    # beam whose top and bottom follow y + rise * (|x| / half)^4.5 ; ends cut on a slant
+    pts = []
+    for i in range(n + 1):
+        x = -half_len + 2 * half_len * i / float(n)
+        lift = rise * (abs(x) / half_len) ** 4.5          # flat in the middle, rising at the ends
+        ext = slant * (abs(x) / half_len) ** 6          # the top overhangs a little at the very ends
+        ring = []
+        for (dx, yy, zz) in ((0, y_bottom, -depth / 2), (0, y_bottom, depth / 2), (ext, y_bottom + thick, depth / 2), (ext, y_bottom + thick, -depth / 2)):
+            q = geo.createPoint(); q.setPosition((x, yy + lift, zz)); ring.append(q)
+        pts.append(ring)
+    for i in range(n):
+        r0, r1 = pts[i], pts[i + 1]
+        for j in range(4):
+            jj = (j + 1) % 4
+            pl([r0[j], r0[jj], r1[jj], r1[j]], name)
+    pl(pts[0], name); pl(list(reversed(pts[-1])), name)
+S = P('torii_span'); PH = P('torii_pillar_height'); DB = P('torii_pillar_dia_bottom'); DT = P('torii_pillar_dia_top')
+LEAN = P('torii_lean'); BT = P('torii_base_top'); BB = P('torii_base_bottom'); BH = P('torii_base_height')
+KL = P('torii_kasagi_length'); KR = P('torii_kasagi_rise'); KT = P('torii_kasagi_thick'); ST = P('torii_shimaki_thick'); KD = P('torii_kasagi_depth')
+NL = P('torii_nuki_length'); NY = P('torii_nuki_y'); NH = P('torii_nuki_height'); ND = P('torii_nuki_depth')
+"""
+
+PILLARS12 = r"""
+# tapered pillars leaning slightly inward, daiwa ring under the shimaki, octagonal kamebara base on a plinth
+for sx in (-1, 1):
+    xb = sx * S / 2; xt = xb - sx * LEAN
+    frustum((xb, BH * 0.9, 0), (xt, PH, 0), DB / 2, DT / 2, 20, 'pillar')
+    frustum((xt, PH - 0.29, 0), (xt, PH, 0), DT * 0.7, DT * 0.7, 20, 'daiwa_ring')
+    frustum((xb, 0.0, 0), (xb, BH * 0.36, 0), BB / 2 * 1.08, BB / 2 * 1.02, 8, 'base_plinth', rot=math.pi / 8)
+    frustum((xb, BH * 0.36, 0), (xb, BH, 0), BB / 2 * 0.92, BT / 2 * 1.08, 8, 'kamebara', rot=math.pi / 8)
+"""
+
+KASAGI12 = r"""
+# shimaki then kasagi, both curving up to the ends, the kasagi longer with overhanging slanted tips
+curved_beam(KL / 2 * 0.95, PH, ST, KD * 0.85, KR * 0.85, 'shimaki')
+curved_beam(KL / 2, PH + ST, KT, KD, KR, 'kasagi', slant=0.18)
+"""
+
+NUKI12 = r"""
+# nuki passing through both pillars, gakuzuka strut up to the shimaki
+aabb(-NL / 2, NY - NH / 2, -ND / 2, NL / 2, NY + NH / 2, ND / 2, 'nuki')
+aabb(-0.205, NY + NH / 2, -ND * 0.4, 0.205, PH, ND * 0.4, 'gakuzuka')
+"""
+
+PROXY13 = HELPERS + r"""
+# Component_SceneProxies_13 : blockout boxes and cylinders in WORLD coordinates, deck front at z 0.
+import random
+geo.addAttrib(hou.attribType.Prim, 'Cd', (0.6, 0.6, 0.6))
+def pl(pts, name):
+    q = geo.createPolygon()
+    for x in pts:
+        q.addVertex(x)
+    q.setAttribValue('name', name)
+def cyl(x, z, r, h, name, sides=14, y0=0.0):
+    a0, a1 = [], []
+    for j in range(sides):
+        ang = 2 * math.pi * j / sides
+        q = geo.createPoint(); q.setPosition((x + r * math.cos(ang), y0, z + r * math.sin(ang))); a0.append(q)
+        q = geo.createPoint(); q.setPosition((x + r * 0.8 * math.cos(ang), y0 + h, z + r * 0.8 * math.sin(ang))); a1.append(q)
+    for j in range(sides):
+        jj = (j + 1) % sides
+        pl([a0[j], a1[j], a1[jj], a0[jj]], name)
+    pl(a0, name); pl(list(reversed(a1)), name)
+def stack(x, z, tiers, name):
+    # tiers = [(width, height), ...] from the ground up, each centred
+    y = 0.0
+    for w, h in tiers:
+        aabb(x - w / 2, y, z - w / 2, x + w / 2, y + h, z + w / 2, name)
+        y += h
+"""
+
+KOMAINU13 = r"""
+for sx in (-1, 1):
+    stack(sx * P('prx_komainu_x'), P('prx_komainu_z'), [(1.5, 0.6), (1.1, 0.8), (0.8, 0.7), (0.6, 0.9)], 'komainu')
+"""
+
+LANTERN13 = r"""
+k = P('prx_lantern_height') / 4.7
+tiers = [(2.9, 0.35), (2.2, 0.6), (1.7, 0.5), (0.8, 1.7), (1.1, 0.8), (1.6, 0.35), (0.35, 0.4)]
+for sx in (-1, 1):
+    stack(sx * P('prx_lantern_x'), P('prx_lantern_z'), [(w * k, h * k) for w, h in tiers], 'lantern')
+"""
+
+TREES13 = r"""
+# two hero cedars read off the reference, then a seeded forest kept out of the path corridor and the shrine
+TH = P('prx_tree_height')
+cyl(-5.6, 18.5, 0.7, TH, 'tree_hero', sides=18)
+cyl(7.4, 15.3, 0.65, TH, 'tree_hero', sides=18)
+rng = random.Random(int(P('prx_tree_seed')))
+half = P('prx_forest_half'); z0 = P('prx_forest_z0'); z1 = P('prx_forest_z1'); clear = P('prx_clear_x')
+placed = [(-5.6, 18.5), (7.4, 15.3)]
+tries = 0
+while len(placed) < int(P('prx_tree_count')) + 2 and tries < 20000:
+    tries += 1
+    x = rng.uniform(-half, half); z = rng.uniform(z0, z1)
+    if abs(x) < clear: continue
+    if abs(x) < 7.5 and -9.0 < z < 3.0: continue            # the shrine and its roof
+    # a real clearing around the shrine, as in the reference : it is also what lets a camera
+    # orbit the roof without a trunk crossing the shot.
+    if math.hypot(x, z + 3.0) < P('prx_clearing_radius'): continue
+    if any((x - a) ** 2 + (z - b) ** 2 < 3.2 ** 2 for a, b in placed): continue
+    placed.append((x, z))
+    cyl(x, z, rng.uniform(0.25, 0.6), TH * rng.uniform(0.8, 1.1), 'tree')
+"""
+
+PATH13 = r"""
+PW = P('prx_path_width')
+aabb(-PW / 2, 0.0, 2.2, PW / 2, 0.06, P('prx_path_end'), 'path')
+for sx in (-1, 1):
+    aabb(sx * PW / 2 - 0.08, 0.0, 2.2, sx * PW / 2 + 0.08, 0.12, P('prx_path_end'), 'path_edge')
+aabb(-2.3, 0.0, 13.7, -1.3, 0.45, 14.1, 'bench')
+aabb(-4.2, 0.0, -1.0, 4.2, 0.08, 2.4, 'forecourt')
+# ground patch : without it the shot shows the viewport grid and reads as unfinished
+GS = P('prx_ground_size')
+aabb(-GS / 2, -0.25, -GS / 2, GS / 2, -0.02, GS / 2, 'ground')
+"""
+
+SUB12 = {'12a_Pillars': PILLARS12, '12b_Kasagi': KASAGI12, '12c_Nuki': NUKI12}
+SUB12_BEVEL = {'12a_Pillars': 0.0, '12b_Kasagi': 0.02, '12c_Nuki': 0.015}
+# 13b is superseded by the modelled lantern 14 : the code stays, the sub is no longer merged.
+SUB13 = {'13a_Komainu': KOMAINU13, '13b_Lanterns_blockout': LANTERN13, '13c_Trees': TREES13, '13d_Path': PATH13}
+SUB13_BEVEL = {}
+
+
+LANT14 = HELPERS + r"""
+# Component_StoneLantern_14 : origin on the ground at the centre, square section, faces along X and Z.
+geo.addAttrib(hou.attribType.Prim, 'Cd', (0.68, 0.68, 0.67))
+def pl(pts, name):
+    q = geo.createPolygon()
+    for x in pts:
+        q.addVertex(x)
+    q.setAttribValue('name', name)
+def square_loft(rings, name):
+    # rings = [(y, half_width), ...] from the bottom up ; closed square solid, box SOP winding
+    rows = []
+    for y, hw in rings:
+        row = []
+        for dx, dz in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+            q = geo.createPoint(); q.setPosition((dx * hw, y, dz * hw)); row.append(q)
+        rows.append(row)
+    for i in range(len(rows) - 1):
+        a, b = rows[i], rows[i + 1]
+        for j in range(4):
+            jj = (j + 1) % 4
+            pl([a[j], b[j], b[jj], a[jj]], name)
+    pl(rows[0], name); pl(list(reversed(rows[-1])), name)
+def slab(y0, h, w, name):
+    aabb(-w / 2, y0, -w / 2, w / 2, y0 + h, w / 2, name)
+SLW, SLH = P('lant_slab_w'), P('lant_slab_h')
+PW = [P('lant_plinth%d_w' % i) for i in (1, 2, 3, 4)]
+PHH = [P('lant_plinth%d_h' % i) for i in (1, 2, 3, 4)]
+KH, KW0, KWM, KW1 = P('lant_kurin_h'), P('lant_kurin_w0'), P('lant_kurin_wmid'), P('lant_kurin_w1')
+CW, CH = P('lant_chidai_w'), P('lant_chidai_h')
+BW, BH = P('lant_box_w'), P('lant_box_h')
+WW, WH = P('lant_window_w'), P('lant_window_h')
+RW, RH, CURL = P('lant_roof_w'), P('lant_roof_h'), P('lant_roof_curl')
+FH = P('lant_finial_h')
+y_plinths = SLH + sum(PHH)
+y_kurin = y_plinths + KH
+y_chidai = y_kurin + CH
+y_box = y_chidai + BH
+y_roof = y_box + RH
+"""
+
+LBASE14 = r"""
+# ground slab then four stepped plinths, each smaller than the one below
+slab(0.0, SLH, SLW, 'ground_slab')
+y = SLH
+for w, h in zip(PW, PHH):
+    slab(y, h, w, 'plinth')
+    y += h
+"""
+
+LSHAFT14 = r"""
+# kurin : a square shaft with a concave waist, then the chidai slab that carries the light box
+n = 12
+rings = []
+for i in range(n + 1):
+    t = i / float(n)
+    # concave profile : wide at the foot, waisted in the middle, flaring back out at the top
+    w = KWM + (KW0 - KWM) * (1.0 - t) ** 2.2 + (KW1 - KWM) * t ** 2.2
+    rings.append((y_plinths + KH * t, w / 2))
+square_loft(rings, 'kurin')
+slab(y_kurin, CH, CW, 'chidai')
+"""
+
+LCHAMBER14 = r"""
+# light box with a window cut on each of the four faces, plus a band at the foot and at the head
+wall = (BW - WW) / 2.0
+y0 = y_chidai + BH * 0.08; y1 = y0 + WH
+for sz in (-1, 1):                      # the two faces facing +Z and -Z
+    z0, z1 = sorted((sz * BW / 2, sz * (BW / 2 - 0.09)))
+    aabb(-BW / 2, y_chidai, z0, BW / 2, y0, z1, 'box_wall')
+    aabb(-BW / 2, y1, z0, BW / 2, y_box, z1, 'box_wall')
+    for sx in (-1, 1):
+        xa, xb = sorted((sx * BW / 2, sx * WW / 2))
+        aabb(xa, y0, z0, xb, y1, z1, 'box_wall')
+for sx in (-1, 1):                      # the two faces facing +X and -X
+    x0, x1 = sorted((sx * BW / 2, sx * (BW / 2 - 0.09)))
+    aabb(x0, y_chidai, -BW / 2 + 0.09, x1, y0, BW / 2 - 0.09, 'box_wall')
+    aabb(x0, y1, -BW / 2 + 0.09, x1, y_box, BW / 2 - 0.09, 'box_wall')
+    for sz in (-1, 1):
+        za, zb = sorted((sz * (BW / 2 - 0.09), sz * WW / 2))
+        aabb(x0, y0, za, x1, y1, zb, 'box_wall')
+slab(y_chidai - 0.06, 0.09, BW + 0.12, 'box_foot_band')
+slab(y_box - 0.03, 0.08, BW + 0.10, 'box_head_band')
+"""
+
+LROOF14 = r"""
+# kasa : a square roof that flares out and up at the corners, its cap, then the ring and ball finial
+rings = [(y_box, RW / 2), (y_box + RH * 0.18, RW / 2 * 0.97), (y_box + RH * 0.72, RW / 2 * 0.55), (y_roof, RW / 2 * 0.30)]
+square_loft(rings, 'kasa')
+for sx in (-1, 1):
+    for sz in (-1, 1):
+        aabb(sx * RW / 2 - (0.16 if sx > 0 else 0.0), y_box + RH * 0.02, sz * RW / 2 - (0.16 if sz > 0 else 0.0),
+             sx * RW / 2 + (0.0 if sx > 0 else 0.16), y_box + RH * 0.02 + CURL, sz * RW / 2 + (0.0 if sz > 0 else 0.16), 'corner_curl')
+slab(y_roof, FH * 0.22, RW * 0.26, 'finial_ring')
+slab(y_roof + FH * 0.22, FH * 0.5, RW * 0.30, 'finial_ball')
+slab(y_roof + FH * 0.72, FH * 0.28, RW * 0.13, 'finial_tip')
+"""
+
+SUB14 = {'14a_Base': LBASE14, '14b_Shaft': LSHAFT14, '14c_Chamber': LCHAMBER14, '14d_Roof': LROOF14}
+SUB14_BEVEL = {'14a_Base': 0.02, '14b_Shaft': 0.015, '14c_Chamber': 0.012, '14d_Roof': 0.015}
+
+SUBS = {11: SUB11, 9: SUB09, 10: SUB10, 12: SUB12, 13: SUB13, 14: SUB14}
+SUB_BEVEL = {11: SUB11_BEVEL, 9: SUB09_BEVEL, 10: SUB10_BEVEL, 12: SUB12_BEVEL, 13: SUB13_BEVEL, 14: SUB14_BEVEL}
+SHARED = {11: PLAT11, 9: ROOF09, 10: ENT10, 12: TORII12, 13: PROXY13, 14: LANT14}
+
+CODE = {}           # id -> python SOP code, filled component by component
+COLORS = {}
+
+
+def ensure_parms(node):
+    g = node.parmTemplateGroup()
+    missing = [x for x in PARMS if g.find(x[0]) is None]
+    if not missing:
+        return
+    folder = g.find('f_japan')
+    f = hou.FolderParmTemplate('f_japan', 'Japan Scene', folder_type=hou.folderType.Tabs)
+    for name, label, d, lo, hi in missing:
+        if isinstance(d, str):
+            f.addParmTemplate(hou.StringParmTemplate(name, label, 1, (d,)))
+        elif isinstance(d, int):
+            f.addParmTemplate(hou.IntParmTemplate(name, label, 1, (d,), min=lo, max=hi))
+        else:
+            f.addParmTemplate(hou.FloatParmTemplate(name, label, 1, (d,), min=lo, max=hi))
+    if folder is None:
+        g.append(f)
+    else:
+        for t in f.parmTemplates():
+            g.appendToFolder(folder, t)
+    node.setParmTemplateGroup(g)
+
+
+
+def tidy(scene):
+    """Lay the graph out and box each component so anything is found at a glance.
+    FR : range le graphe, une boite par composant, une couleur par famille."""
+    for b in scene.networkBoxes():
+        b.destroy()
+    for comp in scene.children():
+        if not comp.name().startswith('Component_'):
+            continue
+        comp.setColor(hou.Color((0.35, 0.52, 0.72)))
+        comp.setComment(comp.name().replace('Component_', ''))
+        comp.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+        for sub in comp.children():
+            if sub.name().startswith('Sub_'):
+                sub.setColor(hou.Color((0.45, 0.68, 0.45)))
+                sub.setComment(sub.name()[4:])
+                sub.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+            sub.parent().layoutChildren()
+        comp.layoutChildren()
+        box = scene.createNetworkBox('box_' + comp.name())
+        box.setComment(comp.name())
+        box.addNode(comp)
+    for helper in ('preview_tile', 'preview_tile_normals'):
+        n = scene.node(helper)
+        if n is not None:
+            n.setColor(hou.Color((0.85, 0.65, 0.3)))
+    scene.layoutChildren()
+
+
+def build():
+    obj = hou.node('/obj')
+    scene = obj.node('JapanScene') or obj.createNode('geo', 'JapanScene')
+    for c in scene.children():
+        if c.type().name() == 'file':
+            c.destroy()
+    ensure_parms(scene)
+    built = []
+    for cid, name in IDS:
+        full = 'Component_%s_%02d' % (name, cid)
+        node = scene.node(full)
+        if cid in BUILT:
+            node = node or scene.createNode('subnet', full)
+            for c in node.children():
+                c.destroy()
+            if cid in SUBS:
+                mrg = node.createNode('merge', 'merge_subcomponents')
+                for i_sub, (sname, scode) in enumerate(sorted(SUBS[cid].items())):
+                    sub = node.createNode('subnet', 'Sub_' + sname)
+                    if sname.endswith('_blockout'):
+                        # superseded work : built and kept in the graph, but unplugged from the merge
+                        spy = sub.createNode('python', 'build'); spy.parm('python').set(SHARED[cid] + scode)
+                        so = sub.createNode('output', 'output0'); so.setInput(0, spy)
+                        sub.setColor(hou.Color((0.4, 0.4, 0.4))); sub.layoutChildren()
+                        continue
+                    if sname.endswith('TileModule'):
+                        # the tile is its own HDA, welded, stored in otls/ and instanced here.
+                        # FR : la tuile est un HDA a part entiere, range dans otls/, simplement instancie.
+                        hou.hda.installFile(TILE_HDA)
+                        spy = sub.createNode('zenray_japanese_roof_tile', 'tile')
+                        for tp in spy.parms():
+                            if tp.name().startswith('tile_') and node.parent().parm(tp.name()) is not None:
+                                tp.setExpression('ch("../../../%s")' % tp.name())
+                        so = sub.createNode('output', 'output0'); so.setInput(0, spy)
+                        sub.layoutChildren()
+                        continue                # the source tile is instanced, never merged as geometry
+                    spy = sub.createNode('python', 'build'); spy.parm('python').set(SHARED[cid] + scode)
+                    last = spy
+                    if sname.endswith('RoofField'):
+                        # tiles are INSTANCED on the generated points, never placed by hand
+                        om = sub.createNode('object_merge', 'in_tile_module')
+                        om.parm('objpath1').set('../../Sub_09a_TileModule/output0')
+                        cp = sub.createNode('copytopoints::2.0', 'copy_tiles_to_points')
+                        cp.setInput(0, om); cp.setInput(1, spy)
+                        cp.parm('pack').set(1)          # packed : thousands of tiles stay light
+                        last = cp
+                    if SUB_BEVEL[cid].get(sname, 0) > 0:
+                        sb = sub.createNode('polybevel::3.0', 'rounded_edges'); sb.setInput(0, spy)
+                        sb.parm('ignoreflatedges').set(1); sb.parm('flatangle').set(25)
+                        sb.parm('offset').set(SUB_BEVEL[cid][sname]); sb.parm('divisions').set(2)
+                        last = sb
+                    so = sub.createNode('output', 'output0'); so.setInput(0, last)
+                    sub.layoutChildren()
+                    mrg.setInput(i_sub, sub)
+                py = mrg
+            else:
+                py = node.createNode('python', 'build')
+                py.parm('python').set(CODE[cid])
+            nrm = node.createNode('normal', 'normals'); nrm.setInput(0, py)
+            nrm.parm('type').set(1); nrm.parm('cuspangle').set(30)
+            col = node.createNode('color', 'tint'); col.setInput(0, nrm)
+            col.parm('class').set(1)
+            col.parmTuple('color').set(COLORS.get(cid, (0.62, 0.62, 0.62)))
+            out = node.createNode('output', 'output0'); out.setInput(0, col)
+            node.layoutChildren()
+            built.append(node)
+        elif node is None:
+            scene.createNode('subnet', full)
+    plat = scene.node('Component_ShrinePlatform_11')
+    if plat is not None:
+        place = scene.node('place_platform_11') or scene.createNode('xform', 'place_platform_11')
+        place.setInput(0, plat)
+        for pn, src in (('tx', 'platform_place'), ('ty', 'platform_place_y'), ('tz', 'platform_place_z'), ('ry', 'platform_place_yaw')):
+            place.parm(pn).setExpression('ch("../%s")' % src)
+        built = [place if n.name() == plat.name() else n for n in built]
+    lant = scene.node('Component_StoneLantern_14')
+    if lant is not None:
+        pair = []
+        for side, sgn in (('l', -1), ('r', 1)):
+            n = scene.node('place_lantern_14_' + side) or scene.createNode('xform', 'place_lantern_14_' + side)
+            n.setInput(0, lant)
+            n.parm('tx').setExpression('%d * ch("../prx_lantern_x")' % sgn)
+            n.parm('tz').setExpression('ch("../prx_lantern_z")')
+            pair.append(n)
+        built = [x for x in built if x.name() != lant.name()] + pair
+    tor = scene.node('Component_Torii_12')
+    if tor is not None:
+        place_t = scene.node('place_torii_12') or scene.createNode('xform', 'place_torii_12')
+        place_t.setInput(0, tor)
+        for pn, src in (('tx', 'torii_place_x'), ('ty', 'torii_place_y'), ('tz', 'torii_place_z'), ('ry', 'torii_place_yaw')):
+            place_t.parm(pn).setExpression('ch("../%s")' % src)
+        built = [place_t if n.name() == tor.name() else n for n in built]
+    ent = scene.node('Component_Entrance_10')
+    if ent is not None:
+        place_e = scene.node('place_entrance_10') or scene.createNode('xform', 'place_entrance_10')
+        place_e.setInput(0, ent)
+        for pn, src in (('tx', 'ent_place_x'), ('ty', 'ent_place_y'), ('tz', 'ent_place_z'), ('ry', 'ent_place_yaw')):
+            place_e.parm(pn).setExpression('ch("../%s")' % src)
+        built = [place_e if n.name() == ent.name() else n for n in built]
+    roof = scene.node('Component_Roof_09')
+    if roof is not None:
+        place_r = scene.node('place_roof_09') or scene.createNode('xform', 'place_roof_09')
+        place_r.setInput(0, roof)
+        for pn, src in (('tx', 'roof_place_x'), ('ty', 'roof_place_y'), ('tz', 'roof_place_z'), ('ry', 'roof_place_yaw')):
+            place_r.parm(pn).setExpression('ch("../%s")' % src)
+        built = [place_r if n.name() == roof.name() else n for n in built]
+    merge = scene.node('merge_components') or scene.createNode('merge', 'merge_components')
+    for i in range(len(merge.inputs())):
+        merge.setInput(i, None)
+    for i, n in enumerate(built):
+        merge.setInput(i, n)
+    out = scene.node('OUT_japan_v001') or scene.createNode('null', 'OUT_japan_v001')
+    out.setInput(0, merge)
+    out.setDisplayFlag(True); out.setRenderFlag(True)
+    scene.layoutChildren()
+    scene.setDisplayFlag(True)
+    tidy(scene)
+    g = out.geometry()
+    return {'points': g.intrinsicValue('pointcount'), 'prims': g.intrinsicValue('primitivecount'),
+            'components': sorted(c.name() for c in scene.children() if c.name().startswith('Component_')),
+            'errors': [n.path() for n in scene.allSubChildren() if n.errors()]}

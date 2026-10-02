@@ -1,0 +1,60 @@
+{
+  "component": "Component_StoneLantern_14",
+  "version": "v002",
+  "label": "chemin_projet_verifie",
+  "timestamp": "2026-09-17 23:15:14",
+  "src_hip": "/Users/zenray/Create/Build/Productions/ZenRayHoudini/ModelingJapan_01/ModelingJapan_01.hiplc",
+  "node_path": "/obj/JapanScene/Component_StoneLantern_14",
+  "children": [
+    {
+      "name": "merge_subcomponents",
+      "type": "merge"
+    },
+    {
+      "name": "Sub_14a_Base",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_14b_Shaft",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_14c_Chamber",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_14d_Roof",
+      "type": "subnet"
+    },
+    {
+      "name": "normals",
+      "type": "normal"
+    },
+    {
+      "name": "tint",
+      "type": "color"
+    },
+    {
+      "name": "output0",
+      "type": "output"
+    }
+  ],
+  "external_inputs": [],
+  "hip_file": "graph.hiplc",
+  "proof_geo": {
+    "points": 2028,
+    "prims": 1962,
+    "bbox": [
+      [
+        -0.8500000238418579,
+        0.0,
+        -0.8500000238418579
+      ],
+      [
+        0.8500000238418579,
+        5.75,
+        0.8500000238418579
+      ]
+    ]
+  }
+}

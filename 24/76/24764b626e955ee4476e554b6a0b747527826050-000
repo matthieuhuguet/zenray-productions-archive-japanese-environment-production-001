@@ -1,0 +1,58 @@
+{
+  "component": "Component_Entrance_10",
+  "active_version": "v002",
+  "versions": [
+    {
+      "version": "v001",
+      "label": "entrance_v001",
+      "dir_name": "v001_entrance_v001",
+      "timestamp": "2026-09-17 16:44:23",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_Entrance_10",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 2040,
+        "prims": 1734,
+        "bbox": [
+          [
+            -3.0,
+            0.0,
+            -1.7999999523162842
+          ],
+          [
+            3.0,
+            3.9110000133514404,
+            0.8299999833106995
+          ]
+        ]
+      },
+      "children_count": 8
+    },
+    {
+      "version": "v002",
+      "label": "save_2035",
+      "dir_name": "v002_save_2035",
+      "timestamp": "2026-09-17 20:35:50",
+      "kind": "object",
+      "node_path": "/obj/JapanScene/Component_Entrance_10",
+      "hip_file": "graph.hiplc",
+      "proof_geo": {
+        "points": 2040,
+        "prims": 1734,
+        "bbox": [
+          [
+            -3.0,
+            0.0,
+            -1.7999999523162842
+          ],
+          [
+            3.0,
+            3.9110000133514404,
+            0.8299999833106995
+          ]
+        ]
+      },
+      "children_count": 8
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "component": "Component_Entrance_10",
+  "version": "v002",
+  "label": "save_2035",
+  "timestamp": "2026-09-17 20:35:50",
+  "src_hip": "/Users/zenray/Create/Build/Productions/ZenRayHoudini/ModelingJapan_01/ModelingJapan_01.hiplc",
+  "node_path": "/obj/JapanScene/Component_Entrance_10",
+  "children": [
+    {
+      "name": "merge_subcomponents",
+      "type": "merge"
+    },
+    {
+      "name": "Sub_10a_Frame",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_10b_Walls",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_10c_Doors",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_10d_OfferingBox",
+      "type": "subnet"
+    },
+    {
+      "name": "normals",
+      "type": "normal"
+    },
+    {
+      "name": "tint",
+      "type": "color"
+    },
+    {
+      "name": "output0",
+      "type": "output"
+    }
+  ],
+  "external_inputs": [],
+  "hip_file": "graph.hiplc",
+  "proof_geo": {
+    "points": 2040,
+    "prims": 1734,
+    "bbox": [
+      [
+        -3.0,
+        0.0,
+        -1.7999999523162842
+      ],
+      [
+        3.0,
+        3.9110000133514404,
+        0.8299999833106995
+      ]
+    ]
+  }
+}

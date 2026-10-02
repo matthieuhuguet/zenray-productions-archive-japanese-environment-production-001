@@ -1,0 +1,61 @@
+{
+  "component": "Component_SceneProxies_13",
+  "version": "v003",
+  "label": "clairiere_et_sol_pour_le_short",
+  "timestamp": "2026-09-17 23:45:29",
+  "saved_at_iso": "2026-09-17T23:45:29+02:00",
+  "src_hip": "/Users/zenray/Create/Build/Productions/ZenRayHoudini/ModelingJapan_01/ModelingJapan_01.hiplc",
+  "node_path": "/obj/JapanScene/Component_SceneProxies_13",
+  "children": [
+    {
+      "name": "merge_subcomponents",
+      "type": "merge"
+    },
+    {
+      "name": "Sub_13a_Komainu",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_13b_Lanterns_blockout",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_13c_Trees",
+      "type": "subnet"
+    },
+    {
+      "name": "Sub_13d_Path",
+      "type": "subnet"
+    },
+    {
+      "name": "normals",
+      "type": "normal"
+    },
+    {
+      "name": "tint",
+      "type": "color"
+    },
+    {
+      "name": "output0",
+      "type": "output"
+    }
+  ],
+  "external_inputs": [],
+  "hip_file": "graph.hiplc",
+  "proof_geo": {
+    "points": 2704,
+    "prims": 1564,
+    "bbox": [
+      [
+        -60.0,
+        -0.25,
+        -60.0
+      ],
+      [
+        60.0,
+        30.779251098632812,
+        60.0
+      ]
+    ]
+  }
+}
